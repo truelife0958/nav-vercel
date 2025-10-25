@@ -1,5 +1,8 @@
-# 忽略这些文件和目录，不创建额外的 Serverless Functions
-api/tests/**
+# 防止为子目录中的 JS 文件创建独立的 Serverless Functions
+api/routes/*.js
 api/database/**
+api/tests/**
+
+# 排除日志和临时文件
 *.log
 *.tmp
