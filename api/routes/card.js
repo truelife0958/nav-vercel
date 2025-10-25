@@ -1,156 +1,216 @@
 const express = require('express');
-const { getDb, saveDb } = require('../db');
+const { sql, ensureDbInitialized } = require('../db');
 const auth = require('./authMiddleware');
-const { sanitize } = require('./utils');
-const router = express.Router({ mergeParams: true });
+const router = express.Router();
 
-// Helper to convert sql.js output to a more usable format
-const formatResult = (res) => {
-  if (!res || res.length === 0) {
-    return [];
-  }
-  const { columns, values } = res[0];
-  return values.map(row => {
-    const obj = {};
-    columns.forEach((col, i) => {
-      obj[col] = row[i];
-    });
-    return obj;
-  });
-};
-
-// 获取所有卡片 - 仅用于管理后台
+// 获取所有卡片 - 仅用于管理后台，需要认证
 router.get('/', auth, async (req, res) => {
   try {
-    const db = await getDb();
-    const result = db.exec('SELECT * FROM cards ORDER BY menu_id, sub_menu_id, "order"');
-    if (!result || result.length === 0) {
-      return res.json([]);
-    }
-
-    const rows = formatResult(result);
-
-    rows.forEach(card => {
+    await ensureDbInitialized();
+    
+    const { rows: cards } = await sql`
+      SELECT * FROM cards 
+      ORDER BY menu_id, sub_menu_id, "order"
+    `;
+    
+    // 处理显示 logo
+    cards.forEach(card => {
       if (!card.custom_logo_path) {
         card.display_logo = card.logo_url || (card.url.replace(/\/+$/, '') + '/favicon.ico');
       } else {
         card.display_logo = '/uploads/' + card.custom_logo_path;
       }
     });
-    res.json(rows);
+    
+    res.json(cards);
   } catch (error) {
     console.error('Get all cards error:', error);
-    res.status(500).json({ error: 'Failed to get cards', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to get cards', 
+      details: error.message 
+    });
   }
 });
 
 // 获取指定菜单的卡片 - 公开访问，不需要认证
 router.get('/:menuId', async (req, res) => {
   try {
-    const db = await getDb();
+    await ensureDbInitialized();
+    
     const { menuId } = req.params;
     const { subMenuId } = req.query;
     
-    let query = 'SELECT * FROM cards WHERE menu_id = ?';
-    let params = [menuId];
-    
+    let cards;
     if (subMenuId) {
-      query += ' AND sub_menu_id = ?';
-      params.push(subMenuId);
+      const result = await sql`
+        SELECT * FROM cards 
+        WHERE menu_id = ${menuId} AND sub_menu_id = ${subMenuId}
+        ORDER BY "order"
+      `;
+      cards = result.rows;
+    } else {
+      const result = await sql`
+        SELECT * FROM cards 
+        WHERE menu_id = ${menuId}
+        ORDER BY "order"
+      `;
+      cards = result.rows;
     }
     
-    query += ' ORDER BY "order"';
-    
-    const result = db.exec(query, params);
-    if (!result || result.length === 0) {
-      return res.json([]);
-    }
-
-    const rows = formatResult(result);
-
-    rows.forEach(card => {
+    // 处理显示 logo
+    cards.forEach(card => {
       if (!card.custom_logo_path) {
         card.display_logo = card.logo_url || (card.url.replace(/\/+$/, '') + '/favicon.ico');
       } else {
         card.display_logo = '/uploads/' + card.custom_logo_path;
       }
     });
-    res.json(rows);
+    
+    res.json(cards);
   } catch (error) {
     console.error('Get cards error:', error);
-    res.status(500).json({ error: 'Failed to get cards', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to get cards', 
+      details: error.message 
+    });
   }
 });
 
-// 新增、修改、删除卡片需认证
+// 新增卡片 - 需要认证
 router.post('/', auth, async (req, res) => {
-  const db = await getDb();
-  const { menu_id, sub_menu_id, title, url, logo_url, custom_logo_path, desc, order } = req.body;
-
   try {
-    // 严格处理所有值，确保没有undefined
-    const processedValues = sanitize([
-      menu_id,
-      sub_menu_id,
-      title,
-      url,
-      logo_url,
-      custom_logo_path,
-      desc,
-      order
-    ]);
-
-    db.run('INSERT INTO cards (menu_id, sub_menu_id, title, url, logo_url, custom_logo_path, desc, "order") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      processedValues);
-
-    const row = db.exec("SELECT last_insert_rowid()");
-    const lastID = row[0].values[0][0];
-    saveDb();
-    const newCardResult = db.exec('SELECT * FROM cards WHERE id = ?', [lastID]);
-    const newCard = formatResult(newCardResult)[0];
+    await ensureDbInitialized();
+    
+    const { 
+      menu_id, 
+      sub_menu_id, 
+      title, 
+      url, 
+      logo_url, 
+      custom_logo_path, 
+      desc, 
+      order 
+    } = req.body;
+    
+    const { rows } = await sql`
+      INSERT INTO cards (
+        menu_id, 
+        sub_menu_id, 
+        title, 
+        url, 
+        logo_url, 
+        custom_logo_path, 
+        desc, 
+        "order"
+      )
+      VALUES (
+        ${menu_id || null}, 
+        ${sub_menu_id || null}, 
+        ${title}, 
+        ${url}, 
+        ${logo_url || null}, 
+        ${custom_logo_path || null}, 
+        ${desc || null}, 
+        ${order || 0}
+      )
+      RETURNING *
+    `;
+    
+    const newCard = rows[0];
+    
+    // 处理显示 logo
+    if (!newCard.custom_logo_path) {
+      newCard.display_logo = newCard.logo_url || (newCard.url.replace(/\/+$/, '') + '/favicon.ico');
+    } else {
+      newCard.display_logo = '/uploads/' + newCard.custom_logo_path;
+    }
+    
     res.status(200).json(newCard);
   } catch (error) {
-    console.error('Insert card error:', error);
-    res.status(500).json({ error: 'Failed to create card', details: error.message });
+    console.error('Create card error:', error);
+    res.status(500).json({ 
+      error: 'Failed to create card', 
+      details: error.message 
+    });
   }
 });
 
+// 更新卡片 - 需要认证
 router.put('/:id', auth, async (req, res) => {
-  const db = await getDb();
-  const cardId = req.params.id;
-  const fields = req.body;
-
   try {
-    const existingCardResult = db.exec('SELECT * FROM cards WHERE id = ?', [cardId]);
-    if (existingCardResult.length === 0) {
+    await ensureDbInitialized();
+    
+    const cardId = req.params.id;
+    const fields = req.body;
+    
+    // 检查卡片是否存在
+    const { rows: existing } = await sql`
+      SELECT * FROM cards WHERE id = ${cardId}
+    `;
+    
+    if (existing.length === 0) {
       return res.status(404).json({ error: 'Card not found' });
     }
     
-    const setClauses = Object.keys(fields).map(key => `${key} = ?`).join(', ');
-    const values = sanitize(Object.values(fields));
-
-    db.run(`UPDATE cards SET ${setClauses} WHERE id = ?`, [...values, cardId]);
-    saveDb();
-    res.json({ changed: 1 });
+    // 构建更新查询
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    Object.keys(fields).forEach(key => {
+      if (key !== 'id') {
+        updates.push(`${key} = $${paramIndex}`);
+        values.push(fields[key]);
+        paramIndex++;
+      }
+    });
+    
+    if (updates.length === 0) {
+      return res.json({ changed: 0 });
+    }
+    
+    values.push(cardId);
+    
+    const query = `UPDATE cards SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
+    const result = await sql.query(query, values);
+    
+    res.json({ changed: result.rowCount });
   } catch (error) {
     console.error('Update card error:', error);
-    res.status(500).json({ error: 'Failed to update card', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to update card', 
+      details: error.message 
+    });
   }
 });
 
+// 删除卡片 - 需要认证
 router.delete('/:id', auth, async (req, res) => {
-  const db = await getDb();
   try {
-    const existingCardResult = db.exec('SELECT * FROM cards WHERE id = ?', [req.params.id]);
-    if (existingCardResult.length === 0) {
+    await ensureDbInitialized();
+    
+    const cardId = req.params.id;
+    
+    // 检查卡片是否存在
+    const { rows: existing } = await sql`
+      SELECT * FROM cards WHERE id = ${cardId}
+    `;
+    
+    if (existing.length === 0) {
       return res.status(404).json({ error: 'Card not found' });
     }
-    db.run('DELETE FROM cards WHERE id=?', [req.params.id]);
-    saveDb();
-    res.json({ deleted: 1 });
+    
+    const { rowCount } = await sql`
+      DELETE FROM cards WHERE id = ${cardId}
+    `;
+    
+    res.json({ deleted: rowCount });
   } catch (error) {
     console.error('Delete card error:', error);
-    res.status(500).json({ error: 'Failed to delete card', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to delete card', 
+      details: error.message 
+    });
   }
 });
 

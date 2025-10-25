@@ -10,7 +10,7 @@ const friendRoutes = require('./routes/friend');
 const userRoutes = require('./routes/user');
 const aiRoutes = require('./routes/ai');
 const compression = require('compression');
-const db = require('./db');
+const { initializeDatabase } = require('./db');
 const config = require('./config');
 const auth = require('./routes/authMiddleware');
 const app = express();
@@ -18,6 +18,27 @@ const listEndpoints = require('express-list-endpoints');
 
 // Vercel Serverless 配置
 const isVercel = process.env.VERCEL === '1';
+
+// 初始化数据库（仅在首次请求时）
+let dbInitPromise = null;
+app.use(async (req, res, next) => {
+  if (!dbInitPromise) {
+    dbInitPromise = initializeDatabase().catch(err => {
+      console.error('数据库初始化失败:', err);
+      dbInitPromise = null; // 重置以便下次重试
+      throw err;
+    });
+  }
+  try {
+    await dbInitPromise;
+    next();
+  } catch (error) {
+    res.status(500).json({
+      error: '数据库初始化失败',
+      details: error.message
+    });
+  }
+});
 
 // 配置CORS允许跨域请求
 app.use(cors({
@@ -40,14 +61,21 @@ app.use(compression());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 健康检查端点
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    database: db ? 'connected' : 'disconnected'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      database: dbInitPromise ? 'initialized' : 'pending'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message
+    });
+  }
 });
 
 app.use('/api/menus', menuRoutes);
