@@ -83,7 +83,7 @@ app.use((req, res) => {
 // 启动服务器
 // Start server only if the script is executed directly
 if (require.main === module) {
-  const port = config.server.port || 3000;
+  const port = config.server.port || 3001;
   app.listen(port, () => {
     console.log(`🚀 Nav API Server running on port ${port}`);
     console.log(`📊 Health check: http://localhost:${port}/health`);

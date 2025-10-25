@@ -7,19 +7,21 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "dev:api": "cd api && node index.js",
-    "dev:all": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "dev:all": "concurrently \"npm run dev:api\" \"wait-on http://localhost:3001/health && npm run dev\"",
     "build": "cd frontend && npm install && npm run build",
     "vercel-build": "npm run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "sql.js": "^1.10.2"
+    "sql.js": "^1.10.2",
+    "wait-on": "^9.0.1"
   },
   "engines": {
     "node": ">=18"
