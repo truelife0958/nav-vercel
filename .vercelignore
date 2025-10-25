@@ -1,10 +1,5 @@
-# 忽略这些文件，不自动创建 Serverless Functions
-api/routes/**
-api/database/**
+# 忽略这些文件和目录，不创建额外的 Serverless Functions
 api/tests/**
-api/config.js
-api/db.js
-api/seed.js
-api/server.log
-api/package.json
-api/package-lock.json
+api/database/**
+*.log
+*.tmp
