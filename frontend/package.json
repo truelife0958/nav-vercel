@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build --mode production",
-    "vercel-build": "node node_modules/vite/bin/vite.js build --mode production --outDir .vercel/output/static",
+    "vercel-build": "node node_modules/vite/bin/vite.js build --mode production",
     "preview": "vite preview"
   },
   "dependencies": {
