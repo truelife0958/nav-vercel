@@ -1,6 +1,20 @@
-const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const config = require('./config');
+
+// 检查是否有 Postgres 环境变量
+const hasPostgres = !!process.env.POSTGRES_URL;
+
+let sql;
+if (hasPostgres) {
+  // 使用 Vercel Postgres
+  const postgres = require('@vercel/postgres');
+  sql = postgres.sql;
+} else {
+  // 降级使用内存数据库（用于开发和测试）
+  console.warn('⚠️  未检测到 POSTGRES_URL，使用内存模拟数据库');
+  const memoryDb = require('./memoryDb');
+  sql = memoryDb.sql;
+}
 
 // 数据库初始化标志
 let dbInitialized = false;
