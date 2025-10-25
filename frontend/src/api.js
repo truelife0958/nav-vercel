@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// 直接使用生产环境 API 地址
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+// 根据环境自动选择 API 地址
+// 生产环境使用相对路径 /api (Vercel 会自动路由到 Serverless Function)
+// 开发环境使用环境变量或 localhost
+const BASE_URL = import.meta.env.PROD
+  ? '/api'
+  : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api');
 const BASE = BASE_URL;
 
 axios.interceptors.response.use(
