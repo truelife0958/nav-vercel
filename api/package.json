@@ -1,0 +1,22 @@
+{
+  "name": "nav-pro-api",
+  "version": "1.0.0",
+  "description": "Nav Pro API for Vercel Serverless",
+  "main": "index.js",
+  "scripts": {
+    "test": "cross-env TEST_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTc2MTM1Mjk1MywiZXhwIjoxNzYxMzU2NTUzfQ.Gko_SGEWicNZ4H_3vdsi3NPOao8xEn9VhAt1LRRU8d0 node --test \"tests/**/*.spec.js\""
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "cross-env": "^10.1.0",
+    "express": "^4.18.2",
+    "express-list-endpoints": "^7.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.13.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

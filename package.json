@@ -1,0 +1,31 @@
+{
+  "name": "nav-pro-vercel",
+  "version": "1.0.0",
+  "description": "Nav Pro - 一键部署到 Vercel 的全栈导航系统",
+  "author": "marry",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "dev:api": "cd api && node index.js",
+    "dev:all": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "build": "cd frontend && npm install && npm run build",
+    "vercel-build": "npm run build"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "sql.js": "^1.10.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/nav-pro-vercel"
+  }
+}
