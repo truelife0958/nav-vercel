@@ -19,24 +19,67 @@ const formatResult = (res) => {
   });
 };
 
-// 获取指定菜单的卡片
+// 获取所有卡片 - 仅用于管理后台
 router.get('/', auth, async (req, res) => {
-  const db = await getDb();
-  const result = db.exec('SELECT * FROM cards');
-  if (!result || result.length === 0) {
-    return res.json([]);
-  }
-
-  const rows = formatResult(result);
-
-  rows.forEach(card => {
-    if (!card.custom_logo_path) {
-      card.display_logo = card.logo_url || (card.url.replace(/\/+$/, '') + '/favicon.ico');
-    } else {
-      card.display_logo = '/uploads/' + card.custom_logo_path;
+  try {
+    const db = await getDb();
+    const result = db.exec('SELECT * FROM cards ORDER BY menu_id, sub_menu_id, "order"');
+    if (!result || result.length === 0) {
+      return res.json([]);
     }
-  });
-  res.json(rows);
+
+    const rows = formatResult(result);
+
+    rows.forEach(card => {
+      if (!card.custom_logo_path) {
+        card.display_logo = card.logo_url || (card.url.replace(/\/+$/, '') + '/favicon.ico');
+      } else {
+        card.display_logo = '/uploads/' + card.custom_logo_path;
+      }
+    });
+    res.json(rows);
+  } catch (error) {
+    console.error('Get all cards error:', error);
+    res.status(500).json({ error: 'Failed to get cards', details: error.message });
+  }
+});
+
+// 获取指定菜单的卡片 - 公开访问，不需要认证
+router.get('/:menuId', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { menuId } = req.params;
+    const { subMenuId } = req.query;
+    
+    let query = 'SELECT * FROM cards WHERE menu_id = ?';
+    let params = [menuId];
+    
+    if (subMenuId) {
+      query += ' AND sub_menu_id = ?';
+      params.push(subMenuId);
+    }
+    
+    query += ' ORDER BY "order"';
+    
+    const result = db.exec(query, params);
+    if (!result || result.length === 0) {
+      return res.json([]);
+    }
+
+    const rows = formatResult(result);
+
+    rows.forEach(card => {
+      if (!card.custom_logo_path) {
+        card.display_logo = card.logo_url || (card.url.replace(/\/+$/, '') + '/favicon.ico');
+      } else {
+        card.display_logo = '/uploads/' + card.custom_logo_path;
+      }
+    });
+    res.json(rows);
+  } catch (error) {
+    console.error('Get cards error:', error);
+    res.status(500).json({ error: 'Failed to get cards', details: error.message });
+  }
 });
 
 // 新增、修改、删除卡片需认证

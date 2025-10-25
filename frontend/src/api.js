@@ -11,9 +11,19 @@ const BASE = BASE_URL;
 axios.interceptors.response.use(
   response => response,
   error => {
+    console.error('API Error:', error);
+    
     if (error.response) {
       const { status, data } = error.response;
-      const errorMsg = data?.details || data?.error || error.message;
+      // 修复错误消息显示问题
+      let errorMsg = '';
+      if (typeof data === 'string') {
+        errorMsg = data;
+      } else if (data && typeof data === 'object') {
+        errorMsg = data.details || data.error || data.message || JSON.stringify(data);
+      } else {
+        errorMsg = error.message || '未知错误';
+      }
 
       if (status === 401) {
         const msg = data?.error || '';
@@ -27,14 +37,16 @@ axios.interceptors.response.use(
           alert(`认证失败: ${errorMsg}`);
         }
       } else {
-        // 对于其他所有错误，显示一个通用的错误提示
-        alert(`请求失败: ${errorMsg}`);
+        // 对于其他所有错误，显示详细的错误信息
+        alert(`请求失败 (${status}): ${errorMsg}`);
       }
     } else if (error.request) {
       // 请求已发出，但没有收到响应
-      alert('网络错误，请检查您的连接');
+      console.error('No response received:', error.request);
+      alert('网络错误：无法连接到服务器，请检查网络连接或服务器状态');
     } else {
       // 设置请求时触发了一个错误
+      console.error('Request setup error:', error.message);
       alert(`请求错误: ${error.message}`);
     }
     return Promise.reject(error);
