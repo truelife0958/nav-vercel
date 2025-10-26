@@ -1,0 +1,5 @@
+# 只排除测试文件和数据库文件
+api/tests
+api/database
+*.spec.js
+*.test.js
