@@ -135,7 +135,7 @@ async function initializeDatabase() {
         url TEXT NOT NULL,
         logo_url TEXT,
         custom_logo_path TEXT,
-        desc TEXT,
+        "desc" TEXT,
         "order" INTEGER DEFAULT 0,
         FOREIGN KEY(menu_id) REFERENCES menus(id) ON DELETE CASCADE,
         FOREIGN KEY(sub_menu_id) REFERENCES sub_menus(id) ON DELETE CASCADE
