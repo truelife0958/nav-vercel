@@ -13,16 +13,16 @@ router.get('/', async (req, res) => {
     if (!page && !pageSize) {
       // 获取主菜单
       const { rows: menus } = await sql`
-        SELECT * FROM menus ORDER BY "order"
+        SELECT * FROM menus ORDER BY sort_order
       `;
-      
+
       // 为每个菜单获取子菜单
       const menusWithSubMenus = await Promise.all(
         menus.map(async (menu) => {
           const { rows: subMenus } = await sql`
-            SELECT * FROM sub_menus 
-            WHERE parent_id = ${menu.id} 
-            ORDER BY "order"
+            SELECT * FROM sub_menus
+            WHERE parent_id = ${menu.id}
+            ORDER BY sort_order
           `;
           return { ...menu, subMenus };
         })
@@ -41,8 +41,8 @@ router.get('/', async (req, res) => {
       const total = parseInt(totalResult[0].total);
       
       const { rows: menus } = await sql`
-        SELECT * FROM menus 
-        ORDER BY "order" 
+        SELECT * FROM menus
+        ORDER BY sort_order
         LIMIT ${size} OFFSET ${offset}
       `;
       
@@ -68,9 +68,9 @@ router.get('/:id/submenus', async (req, res) => {
     await ensureDbInitialized();
     
     const { rows: subMenus } = await sql`
-      SELECT * FROM sub_menus 
-      WHERE parent_id = ${req.params.id} 
-      ORDER BY "order"
+      SELECT * FROM sub_menus
+      WHERE parent_id = ${req.params.id}
+      ORDER BY sort_order
     `;
     
     res.json(subMenus);
@@ -88,10 +88,10 @@ router.post('/', auth, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rows } = await sql`
-      INSERT INTO menus (name, "order") 
-      VALUES (${name}, ${order || 0})
+      INSERT INTO menus (name, sort_order)
+      VALUES (${name}, ${sort_order || 0})
       RETURNING id
     `;
     
@@ -110,10 +110,10 @@ router.put('/:id', auth, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rowCount } = await sql`
-      UPDATE menus 
-      SET name = ${name}, "order" = ${order || 0}
+      UPDATE menus
+      SET name = ${name}, sort_order = ${sort_order || 0}
       WHERE id = ${req.params.id}
     `;
     
@@ -151,10 +151,10 @@ router.post('/:id/submenus', auth, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rows } = await sql`
-      INSERT INTO sub_menus (parent_id, name, "order") 
-      VALUES (${req.params.id}, ${name}, ${order || 0})
+      INSERT INTO sub_menus (parent_id, name, sort_order)
+      VALUES (${req.params.id}, ${name}, ${sort_order || 0})
       RETURNING id
     `;
     
@@ -173,10 +173,10 @@ router.put('/submenus/:id', auth, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rowCount } = await sql`
-      UPDATE sub_menus 
-      SET name = ${name}, "order" = ${order || 0}
+      UPDATE sub_menus
+      SET name = ${name}, sort_order = ${sort_order || 0}
       WHERE id = ${req.params.id}
     `;
     

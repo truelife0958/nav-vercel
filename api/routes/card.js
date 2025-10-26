@@ -9,8 +9,8 @@ router.get('/', auth, async (req, res) => {
     await ensureDbInitialized();
     
     const { rows: cards } = await sql`
-      SELECT * FROM cards 
-      ORDER BY menu_id, sub_menu_id, "order"
+      SELECT * FROM cards
+      ORDER BY menu_id, sub_menu_id, sort_order
     `;
     
     // 处理显示 logo
@@ -43,16 +43,16 @@ router.get('/:menuId', async (req, res) => {
     let cards;
     if (subMenuId) {
       const result = await sql`
-        SELECT * FROM cards 
+        SELECT * FROM cards
         WHERE menu_id = ${menuId} AND sub_menu_id = ${subMenuId}
-        ORDER BY "order"
+        ORDER BY sort_order
       `;
       cards = result.rows;
     } else {
       const result = await sql`
-        SELECT * FROM cards 
+        SELECT * FROM cards
         WHERE menu_id = ${menuId}
-        ORDER BY "order"
+        ORDER BY sort_order
       `;
       cards = result.rows;
     }
@@ -81,37 +81,37 @@ router.post('/', auth, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { 
-      menu_id, 
-      sub_menu_id, 
-      title, 
-      url, 
-      logo_url, 
-      custom_logo_path, 
-      desc, 
-      order 
+    const {
+      menu_id,
+      sub_menu_id,
+      title,
+      url,
+      logo_url,
+      custom_logo_path,
+      description,
+      sort_order
     } = req.body;
-    
+
     const { rows } = await sql`
       INSERT INTO cards (
-        menu_id, 
-        sub_menu_id, 
-        title, 
-        url, 
-        logo_url, 
-        custom_logo_path, 
-        desc, 
-        "order"
+        menu_id,
+        sub_menu_id,
+        title,
+        url,
+        logo_url,
+        custom_logo_path,
+        description,
+        sort_order
       )
       VALUES (
-        ${menu_id || null}, 
-        ${sub_menu_id || null}, 
-        ${title}, 
-        ${url}, 
-        ${logo_url || null}, 
-        ${custom_logo_path || null}, 
-        ${desc || null}, 
-        ${order || 0}
+        ${menu_id || null},
+        ${sub_menu_id || null},
+        ${title},
+        ${url},
+        ${logo_url || null},
+        ${custom_logo_path || null},
+        ${description || null},
+        ${sort_order || 0}
       )
       RETURNING *
     `;

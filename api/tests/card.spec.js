@@ -15,7 +15,7 @@ test.describe('Card API', () => {
     const res = await fetch(`http://localhost:${server.address().port}/api/menus`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TEST_TOKEN}` },
-      body: JSON.stringify({ name: 'Card Test Menu', order: 200 })
+      body: JSON.stringify({ name: 'Card Test Menu', sort_order: 200 })
     });
     const body = await res.json();
     testMenu = { id: body.id };
@@ -45,8 +45,8 @@ test.describe('Card API', () => {
       title: 'Test Card',
       url: 'https://example.com',
       logo_url: 'https://example.com/logo.png',
-      desc: 'A test card',
-      order: 1
+      description: 'A test card',
+      sort_order: 1
     };
     const res = await fetch(`http://localhost:${server.address().port}/api/cards`, {
       method: 'POST',

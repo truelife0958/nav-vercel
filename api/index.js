@@ -187,15 +187,15 @@ app.get('/api/menus', async (req, res) => {
     
     if (!page && !pageSize) {
       const { rows: menus } = await sql`
-        SELECT * FROM menus ORDER BY "order"
+        SELECT * FROM menus ORDER BY sort_order
       `;
       
       const menusWithSubMenus = await Promise.all(
         menus.map(async (menu) => {
           const { rows: subMenus } = await sql`
-            SELECT * FROM sub_menus 
-            WHERE parent_id = ${menu.id} 
-            ORDER BY "order"
+            SELECT * FROM sub_menus
+            WHERE parent_id = ${menu.id}
+            ORDER BY sort_order
           `;
           return { ...menu, subMenus };
         })
@@ -213,8 +213,8 @@ app.get('/api/menus', async (req, res) => {
       const total = parseInt(totalResult[0].total);
       
       const { rows: menus } = await sql`
-        SELECT * FROM menus 
-        ORDER BY "order" 
+        SELECT * FROM menus
+        ORDER BY sort_order
         LIMIT ${size} OFFSET ${offset}
       `;
       
@@ -240,9 +240,9 @@ app.get('/api/menus/:id/submenus', async (req, res) => {
     await ensureDbInitialized();
     
     const { rows: subMenus } = await sql`
-      SELECT * FROM sub_menus 
-      WHERE parent_id = ${req.params.id} 
-      ORDER BY "order"
+      SELECT * FROM sub_menus
+      WHERE parent_id = ${req.params.id}
+      ORDER BY sort_order
     `;
     
     res.json(subMenus);
@@ -260,10 +260,10 @@ app.post('/api/menus', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rows } = await sql`
-      INSERT INTO menus (name, "order") 
-      VALUES (${name}, ${order || 0})
+      INSERT INTO menus (name, sort_order)
+      VALUES (${name}, ${sort_order || 0})
       RETURNING id
     `;
     
@@ -282,10 +282,10 @@ app.put('/api/menus/:id', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rowCount } = await sql`
-      UPDATE menus 
-      SET name = ${name}, "order" = ${order || 0}
+      UPDATE menus
+      SET name = ${name}, sort_order = ${sort_order || 0}
       WHERE id = ${req.params.id}
     `;
     
@@ -323,10 +323,10 @@ app.post('/api/menus/:id/submenus', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rows } = await sql`
-      INSERT INTO sub_menus (parent_id, name, "order") 
-      VALUES (${req.params.id}, ${name}, ${order || 0})
+      INSERT INTO sub_menus (parent_id, name, sort_order)
+      VALUES (${req.params.id}, ${name}, ${sort_order || 0})
       RETURNING id
     `;
     
@@ -345,10 +345,10 @@ app.put('/api/menus/submenus/:id', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { name, order } = req.body;
+    const { name, sort_order } = req.body;
     const { rowCount } = await sql`
-      UPDATE sub_menus 
-      SET name = ${name}, "order" = ${order || 0}
+      UPDATE sub_menus
+      SET name = ${name}, sort_order = ${sort_order || 0}
       WHERE id = ${req.params.id}
     `;
     
@@ -389,8 +389,8 @@ app.get('/api/cards', authMiddleware, async (req, res) => {
     await ensureDbInitialized();
     
     const { rows: cards } = await sql`
-      SELECT * FROM cards 
-      ORDER BY menu_id, sub_menu_id, "order"
+      SELECT * FROM cards
+      ORDER BY menu_id, sub_menu_id, sort_order
     `;
     
     cards.forEach(card => {
@@ -422,16 +422,16 @@ app.get('/api/cards/:menuId', async (req, res) => {
     let cards;
     if (subMenuId) {
       const result = await sql`
-        SELECT * FROM cards 
+        SELECT * FROM cards
         WHERE menu_id = ${menuId} AND sub_menu_id = ${subMenuId}
-        ORDER BY "order"
+        ORDER BY sort_order
       `;
       cards = result.rows;
     } else {
       const result = await sql`
-        SELECT * FROM cards 
+        SELECT * FROM cards
         WHERE menu_id = ${menuId}
-        ORDER BY "order"
+        ORDER BY sort_order
       `;
       cards = result.rows;
     }
@@ -459,37 +459,37 @@ app.post('/api/cards', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
     
-    const { 
-      menu_id, 
-      sub_menu_id, 
-      title, 
-      url, 
-      logo_url, 
-      custom_logo_path, 
-      desc, 
-      order 
+    const {
+      menu_id,
+      sub_menu_id,
+      title,
+      url,
+      logo_url,
+      custom_logo_path,
+      description,
+      sort_order
     } = req.body;
-    
+
     const { rows } = await sql`
       INSERT INTO cards (
-        menu_id, 
-        sub_menu_id, 
-        title, 
-        url, 
-        logo_url, 
-        custom_logo_path, 
-        desc, 
-        "order"
+        menu_id,
+        sub_menu_id,
+        title,
+        url,
+        logo_url,
+        custom_logo_path,
+        description,
+        sort_order
       )
       VALUES (
-        ${menu_id || null}, 
-        ${sub_menu_id || null}, 
-        ${title}, 
-        ${url}, 
-        ${logo_url || null}, 
-        ${custom_logo_path || null}, 
-        ${desc || null}, 
-        ${order || 0}
+        ${menu_id || null},
+        ${sub_menu_id || null},
+        ${title},
+        ${url},
+        ${logo_url || null},
+        ${custom_logo_path || null},
+        ${description || null},
+        ${sort_order || 0}
       )
       RETURNING *
     `;

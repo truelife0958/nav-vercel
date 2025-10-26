@@ -27,7 +27,7 @@ test.describe('Menu API', () => {
     const res = await fetch(`http://localhost:${server.address().port}/api/menus`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TEST_TOKEN}` },
-      body: JSON.stringify({ name: 'Test Menu', order: 100 })
+      body: JSON.stringify({ name: 'Test Menu', sort_order: 100 })
     });
     assert.strictEqual(res.status, 200);
     const body = await res.json();
@@ -45,7 +45,7 @@ test.describe('Menu API', () => {
     let res = await fetch(`http://localhost:${server.address().port}/api/menus`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TEST_TOKEN}` },
-      body: JSON.stringify({ name: 'Menu to Update', order: 1 })
+      body: JSON.stringify({ name: 'Menu to Update', sort_order: 1 })
     });
     let body = await res.json();
     const menuId = body.id;
@@ -72,7 +72,7 @@ test.describe('Menu API', () => {
     let res = await fetch(`http://localhost:${server.address().port}/api/menus`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TEST_TOKEN}` },
-      body: JSON.stringify({ name: 'Menu to Delete', order: 1 })
+      body: JSON.stringify({ name: 'Menu to Delete', sort_order: 1 })
     });
     let body = await res.json();
     const menuId = body.id;

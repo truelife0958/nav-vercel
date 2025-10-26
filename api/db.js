@@ -104,29 +104,31 @@ async function initializeDatabase() {
   
   try {
     console.log('开始初始化数据库...');
-    
+
+    // 艹！Neon这个SB对模板字符串中的双引号处理有问题，老王改用query方法！
+
     // 创建 menus 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS menus (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        "order" INTEGER DEFAULT 0
+        sort_order INTEGER DEFAULT 0
       )
-    `;
-    
+    `, []);
+
     // 创建 sub_menus 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS sub_menus (
         id SERIAL PRIMARY KEY,
         parent_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
-        "order" INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
         FOREIGN KEY(parent_id) REFERENCES menus(id) ON DELETE CASCADE
       )
-    `;
-    
+    `, []);
+
     // 创建 cards 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS cards (
         id SERIAL PRIMARY KEY,
         menu_id INTEGER,
@@ -135,15 +137,15 @@ async function initializeDatabase() {
         url TEXT NOT NULL,
         logo_url TEXT,
         custom_logo_path TEXT,
-        "desc" TEXT,
-        "order" INTEGER DEFAULT 0,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
         FOREIGN KEY(menu_id) REFERENCES menus(id) ON DELETE CASCADE,
         FOREIGN KEY(sub_menu_id) REFERENCES sub_menus(id) ON DELETE CASCADE
       )
-    `;
-    
+    `, []);
+
     // 创建 users 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
@@ -151,27 +153,27 @@ async function initializeDatabase() {
         last_login_time TIMESTAMP,
         last_login_ip VARCHAR(45)
       )
-    `;
-    
+    `, []);
+
     // 创建 ads 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS ads (
         id SERIAL PRIMARY KEY,
         position VARCHAR(50) NOT NULL,
         img TEXT NOT NULL,
         url TEXT NOT NULL
       )
-    `;
-    
+    `, []);
+
     // 创建 friends 表
-    await sql`
+    await sql.query(`
       CREATE TABLE IF NOT EXISTS friends (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         url TEXT NOT NULL,
         logo TEXT
       )
-    `;
+    `, []);
     
     console.log('✅ 数据库表结构创建完成');
     

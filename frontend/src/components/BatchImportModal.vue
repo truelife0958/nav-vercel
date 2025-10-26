@@ -103,8 +103,8 @@ async function importCards() {
       title: (parts || '').trim(),
       url: (parts || '').trim(),
       logo_url: (parts || '').trim(),
-      desc: (parts || '').trim(),
-      order: 0
+      description: (parts || '').trim(),
+      sort_order: 0
     });
   }
 

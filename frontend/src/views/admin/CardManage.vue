@@ -270,7 +270,7 @@ function batchCopyCards() {
   if (selectedCards.value.length === 0) return;
   copiedCards.value = cards.value
     .filter(card => selectedCards.value.includes(card.id))
-    .map(({ title, url, logo_url, desc, order }) => ({ title, url, logo_url, desc, order }));
+    .map(({ title, url, logo_url, description, sort_order }) => ({ title, url, logo_url, description, sort_order }));
   alert(`已复制 ${copiedCards.value.length} 张卡片`);
 }
 

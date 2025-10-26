@@ -44,7 +44,7 @@
               <div><strong>标题:</strong> {{ item.title }}</div>
               <div><strong>网址:</strong> {{ item.url }}</div>
               <div v-if="item.logo_url"><strong>Logo:</strong> {{ item.logo_url }}</div>
-              <div v-if="item.desc"><strong>描述:</strong> {{ item.desc }}</div>
+              <div v-if="item.description"><strong>描述:</strong> {{ item.description }}</div>
             </div>
           </div>
           <p class="preview-count">共解析到 {{ jsonPreview.length }} 个网站</p>
@@ -106,7 +106,7 @@ function handleJsonFileUpload(event) {
           title: item.title || item.name || '未命名',
           url: item.url || item.href || '',
           logo_url: item.logo_url || item.icon || '',
-          desc: item.desc || item.description || ''
+          description: item.description || item.description || ''
         }));
       } else if (data.roots) {
         parsedData = extractBookmarks(data.roots);
@@ -117,7 +117,7 @@ function handleJsonFileUpload(event) {
           title: data.title || data.name || '未命名',
           url: data.url || data.href || '',
           logo_url: data.logo_url || data.icon || '',
-          desc: data.desc || data.description || ''
+          description: data.description || data.description || ''
         }];
       }
 
@@ -143,7 +143,7 @@ function extractBookmarks(bookmarks) {
           title: item.name || item.title || '未命名',
           url: item.url,
           logo_url: '',
-          desc: ''
+          description: ''
         });
       }
       if (item.children) {
@@ -170,8 +170,8 @@ async function importFromJson() {
         title: item.title,
         url: item.url,
         logo_url: item.logo_url,
-        desc: item.desc,
-        order: 0
+        description: item.description,
+        sort_order: 0
       });
     }
 

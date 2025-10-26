@@ -150,13 +150,13 @@ export const parseHtmlFile = (file) => {
           const href = link.getAttribute('href');
           if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
             const title = link.textContent.trim() || link.getAttribute('title') || '未命名';
-            const desc = link.getAttribute('title') || '';
+            const description = link.getAttribute('title') || '';
 
             parsedData.push({
               title: title,
               url: href,
               logo_url: '',
-              desc: desc
+              description: description
             });
           }
         });

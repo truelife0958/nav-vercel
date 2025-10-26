@@ -29,7 +29,7 @@
               <input v-model="menu.name" @blur="updateMenu(menu)" class="menu-name-input" />
               <div class="menu-order">
                 <span class="order-label">排序</span>
-                <input v-model.number="menu.order" type="number" @blur="updateMenu(menu)" class="order-input" />
+                <input v-model.number="menu.sort_order" type="number" @blur="updateMenu(menu)" class="order-input" />
               </div>
             </div>
             <div class="menu-actions">
@@ -74,7 +74,7 @@
                   </div>
                   <input v-model="subMenu.name" @blur="updateSubMenu(subMenu)" class="sub-menu-name-input" />
                   <div class="sub-menu-order">
-                    <input v-model.number="subMenu.order" type="number" @blur="updateSubMenu(subMenu)" class="order-input" />
+                    <input v-model.number="subMenu.sort_order" type="number" @blur="updateSubMenu(subMenu)" class="order-input" />
                   </div>
                 </div>
                 <div class="sub-menu-actions">
@@ -130,15 +130,15 @@ async function loadMenus() {
 async function addMenu() {
   if (!newMenuName.value.trim()) return;
   const maxOrder = menus.value.length
-    ? Math.max(...menus.value.map(m => m.order || 0))
+    ? Math.max(...menus.value.map(m => m.sort_order || 0))
     : 0;
-  await apiAddMenu({ name: newMenuName.value.trim(), order: maxOrder + 1 });
+  await apiAddMenu({ name: newMenuName.value.trim(), sort_order: maxOrder + 1 });
   newMenuName.value = '';
   loadMenus();
 }
 
 async function updateMenu(menu) {
-  await apiUpdateMenu(menu.id, { name: menu.name, order: menu.order });
+  await apiUpdateMenu(menu.id, { name: menu.name, sort_order: menu.sort_order });
   loadMenus();
 }
 
@@ -152,17 +152,17 @@ async function addSubMenu(menuId) {
   const menu = menus.value.find(m => m.id === menuId);
   const subMenuName = prompt('请输入子菜单名称：');
   if (!subMenuName?.trim()) return;
-  
+
   const maxOrder = menu.subMenus?.length
-    ? Math.max(...menu.subMenus.map(sm => sm.order || 0))
+    ? Math.max(...menu.subMenus.map(sm => sm.sort_order || 0))
     : 0;
-    
-  await apiAddSubMenu(menuId, { name: subMenuName.trim(), order: maxOrder + 1 });
+
+  await apiAddSubMenu(menuId, { name: subMenuName.trim(), sort_order: maxOrder + 1 });
   loadMenus();
 }
 
 async function updateSubMenu(subMenu) {
-  await apiUpdateSubMenu(subMenu.id, { name: subMenu.name, order: subMenu.order });
+  await apiUpdateSubMenu(subMenu.id, { name: subMenu.name, sort_order: subMenu.sort_order });
   loadMenus();
 }
 

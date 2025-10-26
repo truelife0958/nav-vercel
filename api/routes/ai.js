@@ -68,22 +68,22 @@ async function enhanceWebsiteInfo(website) {
     enhancedTitle = enhancedTitle.replace(/[\r\n\t]+/g, ' ').trim();
 
     // 生成描述
-    let enhancedDesc = website.desc || '';
-    if (!enhancedDesc) {
-      enhancedDesc = generateDescription(hostname, enhancedTitle);
+    let enhancedDescription = website.description || '';
+    if (!enhancedDescription) {
+      enhancedDescription = generateDescription(hostname, enhancedTitle);
     }
 
     return {
       ...website,
       title: enhancedTitle,
-      desc: enhancedDesc,
+      description: enhancedDescription,
       logo_url: website.logo_url || faviconUrl
     };
   } catch (error) {
     console.error('Enhance website error:', error);
     return {
       ...website,
-      desc: website.desc || '网站'
+      description: website.description || '网站'
     };
   }
 }
@@ -115,9 +115,9 @@ function generateDescription(hostname, title) {
   };
 
   // 检查是否有预定义的描述
-  for (const [domain, desc] of Object.entries(descriptions)) {
+  for (const [domain, description] of Object.entries(descriptions)) {
     if (hostname.includes(domain)) {
-      return desc;
+      return description;
     }
   }
 
@@ -156,7 +156,7 @@ async function getWebsiteInfo(url) {
 
     return {
       title: hostname,
-      desc: generateDescription(hostname, hostname),
+      description: generateDescription(hostname, hostname),
       logo_url: `${urlObj.protocol}//${hostname}/favicon.ico`,
       url: url
     };

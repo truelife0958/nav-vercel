@@ -32,8 +32,8 @@
           <td><input v-model="card.title" @blur="$emit('update-card', card)" class="table-input" /></td>
           <td><input v-model="card.url" @blur="$emit('update-card', card)" class="table-input" /></td>
           <td><input v-model="card.logo_url" @blur="$emit('update-card', card)" class="table-input" placeholder="logo链接(可选)" /></td>
-          <td><input v-model="card.desc" @blur="$emit('update-card', card)" class="table-input" placeholder="描述（可选）" /></td>
-          <td><input v-model.number="card.order" type="number" @blur="$emit('update-card', card)" class="table-input order-input" /></td>
+          <td><input v-model="card.description" @blur="$emit('update-card', card)" class="table-input" placeholder="描述（可选）" /></td>
+          <td><input v-model.number="card.sort_order" type="number" @blur="$emit('update-card', card)" class="table-input order-input" /></td>
           <td>
             <div class="action-buttons">
               <select

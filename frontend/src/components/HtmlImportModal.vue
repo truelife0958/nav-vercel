@@ -44,7 +44,7 @@
             <div v-for="(item, index) in htmlPreview.slice(0, 5)" :key="index" class="preview-item">
               <div><strong>标题:</strong> {{ item.title }}</div>
               <div><strong>网址:</strong> {{ item.url }}</div>
-              <div v-if="item.desc"><strong>描述:</strong> {{ item.desc }}</div>
+              <div v-if="item.description"><strong>描述:</strong> {{ item.description }}</div>
             </div>
           </div>
           <p class="preview-count">共解析到 {{ htmlPreview.length }} 个链接</p>
@@ -120,7 +120,7 @@ function handleHtmlFileUpload(event) {
             title: title,
             url: href,
             logo_url: '',
-            desc: desc
+            description: desc
           });
         }
       });
@@ -167,8 +167,8 @@ async function importFromHtml() {
         title: item.title,
         url: item.url,
         logo_url: item.logo_url,
-        desc: item.desc,
-        order: 0
+        description: item.description,
+        sort_order: 0
       });
     }
 
@@ -192,7 +192,7 @@ async function enhanceWithAI(data) {
       enhanced.push({
         ...item,
         logo_url: faviconUrl,
-        desc: item.desc || `来自 ${url.hostname} 的网站`
+        description: item.description || `来自 ${url.hostname} 的网站`
       });
     } catch {
       enhanced.push(item);
