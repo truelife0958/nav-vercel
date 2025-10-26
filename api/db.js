@@ -158,19 +158,59 @@ async function initializeDatabase() {
     console.log('✅ 数据库表结构创建完成');
     
     // 检查是否需要创建默认管理员
-    const { rows: users } = await sql`SELECT COUNT(*) as count FROM users`;
-    const userCount = parseInt(users[0].count || users[0].COUNT || 0);
-    
-    if (userCount === 0) {
-      console.log('创建默认管理员账户...');
-      const hashedPassword = await bcrypt.hash(config.admin.password, 10);
-      await sql`
-        INSERT INTO users (username, password)
-        VALUES (${config.admin.username}, ${hashedPassword})
-      `;
-      console.log(`✅ 默认管理员账户已创建: ${config.admin.username}`);
-    } else {
-      console.log(`✅ 已存在 ${userCount} 个用户账户`);
+    try {
+      const result = await sql`SELECT COUNT(*) as count FROM users`;
+      console.log('查询用户数量结果:', JSON.stringify(result));
+      
+      const users = result.rows || result;
+      if (!users || users.length === 0) {
+        console.warn('⚠️  无法查询用户数量，创建默认管理员');
+        const hashedPassword = await bcrypt.hash(config.admin.password, 10);
+        await sql`
+          INSERT INTO users (username, password)
+          VALUES (${config.admin.username}, ${hashedPassword})
+        `;
+        console.log(`✅ 默认管理员账户已创建: ${config.admin.username}`);
+      } else {
+        const firstRow = users[0];
+        const userCount = parseInt(
+          firstRow?.count || 
+          firstRow?.COUNT || 
+          firstRow?.['count(*)'] || 
+          0
+        );
+        
+        console.log(`当前用户数量: ${userCount}`);
+        
+        if (userCount === 0) {
+          console.log('创建默认管理员账户...');
+          const hashedPassword = await bcrypt.hash(config.admin.password, 10);
+          await sql`
+            INSERT INTO users (username, password)
+            VALUES (${config.admin.username}, ${hashedPassword})
+          `;
+          console.log(`✅ 默认管理员账户已创建: ${config.admin.username}`);
+        } else {
+          console.log(`✅ 已存在 ${userCount} 个用户账户`);
+        }
+      }
+    } catch (userCheckError) {
+      console.error('检查用户时出错:', userCheckError);
+      console.warn('⚠️  尝试创建默认管理员（忽略可能的重复错误）');
+      try {
+        const hashedPassword = await bcrypt.hash(config.admin.password, 10);
+        await sql`
+          INSERT INTO users (username, password)
+          VALUES (${config.admin.username}, ${hashedPassword})
+        `;
+        console.log(`✅ 默认管理员账户已创建: ${config.admin.username}`);
+      } catch (insertError) {
+        if (insertError.message.includes('duplicate') || insertError.message.includes('unique')) {
+          console.log('✅ 管理员账户已存在');
+        } else {
+          console.error('创建管理员失败:', insertError);
+        }
+      }
     }
     
     dbInitialized = true;
@@ -184,10 +224,16 @@ async function initializeDatabase() {
   } catch (error) {
     console.error('❌ 数据库初始化失败:', error);
     console.error('错误详情:', error.message);
+    console.error('错误堆栈:', error.stack);
     
     // 如果是 Postgres 连接失败，尝试降级到内存数据库
-    if (!isMemoryDb && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND') || error.message.includes('connect'))) {
-      console.warn('⚠️  Postgres 连接失败，自动降级到内存数据库');
+    if (!isMemoryDb && (
+      error.message.includes('fetch failed') || 
+      error.message.includes('ENOTFOUND') || 
+      error.message.includes('connect') ||
+      error.message.includes('Cannot read properties')
+    )) {
+      console.warn('⚠️  Postgres 初始化失败，自动降级到内存数据库');
       initializationError = error;
       
       // 重置标志并使用内存数据库重试
