@@ -6,13 +6,46 @@ const hasPostgres = !!process.env.POSTGRES_URL;
 
 let sql;
 let isMemoryDb = false;
+let pgClient = null;
 
 try {
   if (hasPostgres) {
-    // 使用 Vercel Postgres
-    const postgres = require('@vercel/postgres');
-    sql = postgres.sql;
-    console.log('✅ 使用 Vercel Postgres 数据库');
+    console.log('✅ 检测到 POSTGRES_URL，尝试连接数据库...');
+    
+    // 使用 @neondatabase/serverless 包，它兼容 Supabase
+    const { neon } = require('@neondatabase/serverless');
+    const sqlClient = neon(process.env.POSTGRES_URL);
+    
+    // 创建一个兼容的 sql 函数
+    sql = async (strings, ...values) => {
+      try {
+        // 构建 SQL 查询
+        let query = '';
+        const params = [];
+        
+        for (let i = 0; i < strings.length; i++) {
+          query += strings[i];
+          if (i < values.length) {
+            params.push(values[i]);
+            query += `$${params.length}`;
+          }
+        }
+        
+        const result = await sqlClient(query, params);
+        return { rows: result, rowCount: result.length };
+      } catch (error) {
+        console.error('SQL 执行错误:', error);
+        throw error;
+      }
+    };
+    
+    // 添加 query 方法用于动态查询
+    sql.query = async (query, params) => {
+      const result = await sqlClient(query, params);
+      return { rows: result, rowCount: result.length };
+    };
+    
+    console.log('✅ 使用 Neon Serverless 连接 Postgres 数据库');
   } else {
     // 降级使用内存数据库
     console.warn('⚠️  未检测到 POSTGRES_URL，使用内存模拟数据库（数据将在重启后丢失）');
@@ -31,6 +64,7 @@ try {
 
 // 数据库初始化标志
 let dbInitialized = false;
+let initializationError = null;
 
 /**
  * 初始化数据库表结构
@@ -39,6 +73,15 @@ async function initializeDatabase() {
   if (dbInitialized) {
     console.log('数据库已初始化，跳过');
     return;
+  }
+  
+  // 如果之前初始化失败过，尝试降级到内存数据库
+  if (initializationError && !isMemoryDb) {
+    console.warn('⚠️  之前的数据库初始化失败，降级到内存数据库');
+    const memoryDb = require('./memoryDb');
+    sql = memoryDb.sql;
+    isMemoryDb = true;
+    initializationError = null;
   }
   
   try {
@@ -135,13 +178,28 @@ async function initializeDatabase() {
     
     if (isMemoryDb) {
       console.warn('⚠️  警告：当前使用内存数据库，数据将在服务器重启后丢失');
-      console.warn('⚠️  建议：在 Vercel 设置 Postgres 数据库以实现数据持久化');
+      console.warn('⚠️  建议：设置 POSTGRES_URL 环境变量以实现数据持久化');
     }
     
   } catch (error) {
     console.error('❌ 数据库初始化失败:', error);
     console.error('错误详情:', error.message);
-    console.error('错误堆栈:', error.stack);
+    
+    // 如果是 Postgres 连接失败，尝试降级到内存数据库
+    if (!isMemoryDb && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND') || error.message.includes('connect'))) {
+      console.warn('⚠️  Postgres 连接失败，自动降级到内存数据库');
+      initializationError = error;
+      
+      // 重置标志并使用内存数据库重试
+      dbInitialized = false;
+      const memoryDb = require('./memoryDb');
+      sql = memoryDb.sql;
+      isMemoryDb = true;
+      
+      // 递归调用，使用内存数据库重新初始化
+      return await initializeDatabase();
+    }
+    
     throw error;
   }
 }
