@@ -1,8 +1,0 @@
-# 只排除真正不需要的文件
-api/tests/**
-api/database/**
-*.log
-*.tmp
-
-# 不要排除 routes、config、db 等文件
-# 它们需要被包含作为依赖，但不会被单独创建为 Functions

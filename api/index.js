@@ -14,7 +14,6 @@ const { initializeDatabase } = require('./db');
 const config = require('./config');
 const auth = require('./routes/authMiddleware');
 const app = express();
-const listEndpoints = require('express-list-endpoints');
 
 // Vercel Serverless 配置
 const isVercel = process.env.VERCEL === '1';
@@ -45,6 +44,7 @@ app.use(cors({
   origin: [
     'https://nav-pro-inky.vercel.app',
     'https://nav-vercel-jade.vercel.app',
+    'https://nav-vercel-eight.vercel.app',
     'https://nav.weny888.com',
     'http://localhost:5173',
     'http://localhost:5174',
@@ -61,7 +61,7 @@ app.use(compression());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 健康检查端点
-app.get('/health', async (req, res) => {
+app.get('/api/health', async (req, res) => {
   try {
     res.status(200).json({
       status: 'ok',
@@ -78,6 +78,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// API 路由 - 注意：在 Vercel 中，路径已经包含 /api 前缀
 app.use('/api/menus', menuRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/upload', auth, uploadRoutes);
@@ -92,16 +93,27 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Nav API Server',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    environment: isVercel ? 'Vercel Serverless' : 'Local'
+  });
+});
+
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'Nav API Server',
+    version: '1.0.0',
+    status: 'running',
+    environment: isVercel ? 'Vercel Serverless' : 'Local'
   });
 });
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.stack);
   res.status(500).json({
     error: 'Internal Server Error',
-    message: err.message
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
@@ -109,18 +121,17 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
-    message: 'Route not found'
+    message: 'Route not found',
+    path: req.path
   });
 });
 
-// 启动服务器
-// Start server only if the script is executed directly
+// 启动服务器（仅在本地运行时）
 if (require.main === module) {
   const port = config.server.port || 3001;
   app.listen(port, () => {
     console.log(`🚀 Nav API Server running on port ${port}`);
-    console.log(`📊 Health check: http://localhost:${port}/health`);
-    console.log('Registered routes:', listEndpoints(app));
+    console.log(`📊 Health check: http://localhost:${port}/api/health`);
   });
 }
 
