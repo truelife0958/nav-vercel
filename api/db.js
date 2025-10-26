@@ -4,9 +4,12 @@ const config = require('./config');
 // 检查是否有 Postgres 环境变量
 const hasPostgres = !!process.env.POSTGRES_URL;
 
-let sql;
+// 使用对象包装 sql，这样可以动态切换
+const sqlWrapper = {
+  current: null
+};
+
 let isMemoryDb = false;
-let pgClient = null;
 
 try {
   if (hasPostgres) {
@@ -17,50 +20,65 @@ try {
     const sqlClient = neon(process.env.POSTGRES_URL);
     
     // 创建一个兼容的 sql 函数
-    sql = async (strings, ...values) => {
-      try {
-        // 构建 SQL 查询
-        let query = '';
-        const params = [];
-        
-        for (let i = 0; i < strings.length; i++) {
-          query += strings[i];
-          if (i < values.length) {
-            params.push(values[i]);
-            query += `$${params.length}`;
+    const createSqlFunction = (client) => {
+      const sqlFunc = async (strings, ...values) => {
+        try {
+          // 构建 SQL 查询
+          let query = '';
+          const params = [];
+          
+          for (let i = 0; i < strings.length; i++) {
+            query += strings[i];
+            if (i < values.length) {
+              params.push(values[i]);
+              query += `$${params.length}`;
+            }
           }
+          
+          const result = await client(query, params);
+          return { rows: result, rowCount: result.length };
+        } catch (error) {
+          console.error('SQL 执行错误:', error);
+          throw error;
         }
-        
-        const result = await sqlClient(query, params);
+      };
+      
+      // 添加 query 方法用于动态查询
+      sqlFunc.query = async (query, params) => {
+        const result = await client(query, params);
         return { rows: result, rowCount: result.length };
-      } catch (error) {
-        console.error('SQL 执行错误:', error);
-        throw error;
-      }
+      };
+      
+      return sqlFunc;
     };
     
-    // 添加 query 方法用于动态查询
-    sql.query = async (query, params) => {
-      const result = await sqlClient(query, params);
-      return { rows: result, rowCount: result.length };
-    };
-    
+    sqlWrapper.current = createSqlFunction(sqlClient);
     console.log('✅ 使用 Neon Serverless 连接 Postgres 数据库');
   } else {
     // 降级使用内存数据库
     console.warn('⚠️  未检测到 POSTGRES_URL，使用内存模拟数据库（数据将在重启后丢失）');
     const memoryDb = require('./memoryDb');
-    sql = memoryDb.sql;
+    sqlWrapper.current = memoryDb.sql;
     isMemoryDb = true;
   }
 } catch (error) {
   console.error('数据库模块加载失败:', error);
   // 最后的降级方案
   const memoryDb = require('./memoryDb');
-  sql = memoryDb.sql;
+  sqlWrapper.current = memoryDb.sql;
   isMemoryDb = true;
   console.warn('⚠️  降级到内存数据库');
 }
+
+// 导出一个代理函数，总是使用当前的 sql
+const sql = new Proxy(function() {}, {
+  apply(target, thisArg, args) {
+    return sqlWrapper.current.apply(thisArg, args);
+  },
+  get(target, prop) {
+    return sqlWrapper.current[prop];
+  }
+});
 
 // 数据库初始化标志
 let dbInitialized = false;
@@ -79,7 +97,7 @@ async function initializeDatabase() {
   if (initializationError && !isMemoryDb) {
     console.warn('⚠️  之前的数据库初始化失败，降级到内存数据库');
     const memoryDb = require('./memoryDb');
-    sql = memoryDb.sql;
+    sqlWrapper.current = memoryDb.sql;
     isMemoryDb = true;
     initializationError = null;
   }
@@ -218,7 +236,7 @@ async function initializeDatabase() {
     
     if (isMemoryDb) {
       console.warn('⚠️  警告：当前使用内存数据库，数据将在服务器重启后丢失');
-      console.warn('⚠️  建议：设置 POSTGRES_URL 环境变量以实现数据持久化');
+      console.warn('⚠️  建议：检查 Supabase 数据库连接配置');
     }
     
   } catch (error) {
@@ -239,7 +257,7 @@ async function initializeDatabase() {
       // 重置标志并使用内存数据库重试
       dbInitialized = false;
       const memoryDb = require('./memoryDb');
-      sql = memoryDb.sql;
+      sqlWrapper.current = memoryDb.sql;
       isMemoryDb = true;
       
       // 递归调用，使用内存数据库重新初始化
