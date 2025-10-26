@@ -1,5 +1,10 @@
-# 只排除测试文件和数据库文件
-api/tests
+# 排除所有路由文件目录（已内联到 index.js）
+api/routes
+
+# 排除数据库和测试文件
 api/database
+api/tests
+
+# 排除测试文件
 *.spec.js
 *.test.js
