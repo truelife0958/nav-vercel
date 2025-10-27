@@ -31,7 +31,7 @@
             </tr>
           </tbody>
         </table>
-        <div v-else class="empty-state">暂无左侧广告</div>
+        <div v-else class="empty-state" style="background: orange !important; color: black !important; padding: 40px 20px !important; font-size: 24px !important; font-weight: bold !important; border: 5px solid red !important; display: block !important; visibility: visible !important;">暂无左侧广告（橙色提示）</div>
       </div>
     </div>
     <div class="ad-section" style="background: pink !important; border: 5px solid purple !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; min-height: 100px !important; margin-bottom: 20px !important;">
@@ -47,7 +47,7 @@
             </tr>
           </tbody>
         </table>
-        <div v-else class="empty-state">暂无右侧广告</div>
+        <div v-else class="empty-state" style="background: orange !important; color: black !important; padding: 40px 20px !important; font-size: 24px !important; font-weight: bold !important; border: 5px solid red !important; display: block !important; visibility: visible !important;">暂无右侧广告（橙色提示）</div>
       </div>
     </div>
   </div>
