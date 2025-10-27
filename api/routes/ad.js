@@ -52,18 +52,29 @@ router.put('/:id', auth, async (req, res) => {
     
     const { position, img, url } = req.body;
     
+    // 如果没有提供position，先获取当前广告的position
+    let updatePosition = position;
+    if (!updatePosition) {
+      const { rows } = await sql`
+        SELECT position FROM ads WHERE id = ${req.params.id}
+      `;
+      if (rows.length > 0) {
+        updatePosition = rows[0].position;
+      }
+    }
+    
     const { rowCount } = await sql`
-      UPDATE ads 
-      SET position = ${position}, img = ${img}, url = ${url}
+      UPDATE ads
+      SET position = ${updatePosition}, img = ${img}, url = ${url}
       WHERE id = ${req.params.id}
     `;
     
     res.json({ changed: rowCount });
   } catch (error) {
     console.error('Update ad error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update ad', 
-      details: error.message 
+    res.status(500).json({
+      error: 'Failed to update ad',
+      details: error.message
     });
   }
 });
