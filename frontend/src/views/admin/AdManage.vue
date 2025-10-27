@@ -1,61 +1,63 @@
 <template>
-  <div class="ad-manage">
-    <div class="ad-header">
-      <h3 class="section-title">添加新广告</h3>
-      <form class="ad-add-row" @submit.prevent="handleAddAd">
-        <input v-model="newAdImg" placeholder="广告图片链接" class="input" required />
-        <input v-model="newAdUrl" placeholder="广告跳转链接" class="input" required />
-        <select v-model="newAdPos" class="input select-input">
-          <option value="left">左侧广告</option>
-          <option value="right">右侧广告</option>
-        </select>
-        <button class="btn" type="submit">添加广告</button>
-      </form>
-    </div>
-
-    <div class="ad-section">
-      <h3 class="section-title">左侧广告列表</h3>
-      <div class="ad-card">
-        <table class="ad-table" v-if="leftAds.length > 0">
-          <thead>
-            <tr>
-              <th>图片链接</th>
-              <th>跳转链接</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="ad in leftAds" :key="ad.id">
-              <td><input v-model="ad.img" @blur="updateAd(ad)" class="input" /></td>
-              <td><input v-model="ad.url" @blur="updateAd(ad)" class="input" /></td>
-              <td><button class="btn btn-danger" @click="deleteAd(ad.id)">删除</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else class="empty-state">暂无左侧广告</div>
+  <div class="ad-manage-container">
+    <div class="ad-manage-wrapper">
+      <div class="ad-header-section">
+        <h3 class="section-title-main">添加新广告</h3>
+        <form class="ad-add-form" @submit.prevent="handleAddAd">
+          <input v-model="newAdImg" placeholder="广告图片链接" class="form-input" required />
+          <input v-model="newAdUrl" placeholder="广告跳转链接" class="form-input" required />
+          <select v-model="newAdPos" class="form-select">
+            <option value="left">左侧广告</option>
+            <option value="right">右侧广告</option>
+          </select>
+          <button class="form-btn" type="submit">添加广告</button>
+        </form>
       </div>
-    </div>
 
-    <div class="ad-section">
-      <h3 class="section-title">右侧广告列表</h3>
-      <div class="ad-card">
-        <table class="ad-table" v-if="rightAds.length > 0">
-          <thead>
-            <tr>
-              <th>图片链接</th>
-              <th>跳转链接</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="ad in rightAds" :key="ad.id">
-              <td><input v-model="ad.img" @blur="updateAd(ad)" class="input" /></td>
-              <td><input v-model="ad.url" @blur="updateAd(ad)" class="input" /></td>
-              <td><button class="btn btn-danger" @click="deleteAd(ad.id)">删除</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else class="empty-state">暂无右侧广告</div>
+      <div class="ad-list-section">
+        <h3 class="section-title-main">左侧广告列表</h3>
+        <div class="ad-table-card">
+          <table class="data-table" v-if="leftAds.length > 0">
+            <thead>
+              <tr>
+                <th>图片链接</th>
+                <th>跳转链接</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="ad in leftAds" :key="ad.id">
+                <td><input v-model="ad.img" @blur="updateAd(ad)" class="table-input" /></td>
+                <td><input v-model="ad.url" @blur="updateAd(ad)" class="table-input" /></td>
+                <td><button class="delete-btn" @click="deleteAd(ad.id)">删除</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="empty-message">暂无左侧广告</div>
+        </div>
+      </div>
+
+      <div class="ad-list-section">
+        <h3 class="section-title-main">右侧广告列表</h3>
+        <div class="ad-table-card">
+          <table class="data-table" v-if="rightAds.length > 0">
+            <thead>
+              <tr>
+                <th>图片链接</th>
+                <th>跳转链接</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="ad in rightAds" :key="ad.id">
+                <td><input v-model="ad.img" @blur="updateAd(ad)" class="table-input" /></td>
+                <td><input v-model="ad.url" @blur="updateAd(ad)" class="table-input" /></td>
+                <td><button class="delete-btn" @click="deleteAd(ad.id)">删除</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="empty-message">暂无右侧广告</div>
+        </div>
       </div>
     </div>
   </div>
@@ -142,214 +144,241 @@ async function deleteAd(id) {
 }
 </script>
 
-<style scoped>
-.ad-manage {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #f5f6fa;
-  min-height: 600px;
+<style>
+/* 使用全局样式避免 scoped 问题 */
+.ad-manage-container {
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  background: #f5f6fa !important;
+  min-height: 600px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-.section-title {
-  text-align: left;
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 16px;
-  color: #2566d8;
+.ad-manage-wrapper {
+  width: 100% !important;
+  display: block !important;
 }
 
-.ad-header {
-  margin-bottom: 32px;
-  padding: 24px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+.section-title-main {
+  text-align: left !important;
+  font-size: 1.3rem !important;
+  font-weight: bold !important;
+  margin-bottom: 16px !important;
+  color: #2566d8 !important;
+  display: block !important;
 }
 
-.ad-header .section-title {
-  color: #fff;
-  text-align: center;
-  margin-bottom: 20px;
+.ad-header-section {
+  margin-bottom: 32px !important;
+  padding: 24px !important;
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  display: block !important;
 }
 
-.ad-section {
-  margin-bottom: 32px;
+.ad-header-section .section-title-main {
+  color: #fff !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
 }
 
-.ad-card {
-  width: 100%;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 20px;
+.ad-list-section {
+  margin-bottom: 32px !important;
+  display: block !important;
 }
 
-.ad-add-row {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+.ad-table-card {
+  width: 100% !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+  padding: 20px !important;
+  display: block !important;
 }
 
-.input {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #d0d7e2;
-  background: #fff;
-  color: #222;
-  font-size: 14px;
-  flex: 1;
-  min-width: 200px;
+.ad-add-form {
+  display: flex !important;
+  gap: 16px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
 }
 
-.input:focus {
-  outline: 2px solid #2566d8;
-  border-color: #2566d8;
+.form-input, .form-select {
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid #d0d7e2 !important;
+  background: #fff !important;
+  color: #222 !important;
+  font-size: 14px !important;
+  flex: 1 !important;
+  min-width: 200px !important;
+  display: inline-block !important;
 }
 
-.select-input {
-  min-width: 120px;
-  flex: 0 0 auto;
+.form-input:focus, .form-select:focus {
+  outline: 2px solid #2566d8 !important;
+  border-color: #2566d8 !important;
 }
 
-.btn {
-  background: #2566d8;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-  white-space: nowrap;
+.form-select {
+  min-width: 120px !important;
+  flex: 0 0 auto !important;
 }
 
-.btn:hover {
-  background: #174ea6;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 102, 216, 0.3);
+.form-btn {
+  background: #2566d8 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
 }
 
-.btn-danger {
-  background: #e74c3c;
-  padding: 8px 16px;
+.form-btn:hover {
+  background: #174ea6 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(37, 102, 216, 0.3) !important;
 }
 
-.btn-danger:hover {
-  background: #c0392b;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+.delete-btn {
+  background: #e74c3c !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s !important;
+  display: inline-block !important;
 }
 
-.ad-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  color: #222;
-  border-radius: 8px;
-  overflow: hidden;
+.delete-btn:hover {
+  background: #c0392b !important;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
 }
 
-.ad-table th,
-.ad-table td {
-  padding: 12px 16px;
-  border: 1px solid #e3e6ef;
-  text-align: left;
+.data-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: #fff !important;
+  color: #222 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  display: table !important;
 }
 
-.ad-table th {
-  background: #f5f7fa;
-  color: #222;
-  font-weight: bold;
-  font-size: 14px;
+.data-table th,
+.data-table td {
+  padding: 12px 16px !important;
+  border: 1px solid #e3e6ef !important;
+  text-align: left !important;
+  display: table-cell !important;
 }
 
-.ad-table td input {
-  width: 100%;
-  background: #f9f9f9;
-  color: #222;
-  border: 1px solid #d0d7e2;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 13px;
+.data-table th {
+  background: #f5f7fa !important;
+  color: #222 !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
 }
 
-.ad-table td input:focus {
-  outline: 2px solid #2566d8;
-  background: #fff;
+.table-input {
+  width: 100% !important;
+  background: #f9f9f9 !important;
+  color: #222 !important;
+  border: 1px solid #d0d7e2 !important;
+  border-radius: 4px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  display: block !important;
 }
 
-.ad-table th:last-child,
-.ad-table td:last-child {
-  text-align: center;
-  width: 120px;
+.table-input:focus {
+  outline: 2px solid #2566d8 !important;
+  background: #fff !important;
 }
 
-.empty-state {
-  text-align: center;
-  color: #999;
-  padding: 60px 20px;
-  font-size: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
+.data-table th:last-child,
+.data-table td:last-child {
+  text-align: center !important;
+  width: 120px !important;
+}
+
+.empty-message {
+  text-align: center !important;
+  color: #999 !important;
+  padding: 60px 20px !important;
+  font-size: 16px !important;
+  background: #f9f9f9 !important;
+  border-radius: 8px !important;
+  display: block !important;
 }
 
 @media (max-width: 768px) {
-  .ad-manage {
-    width: 100%;
-    padding: 16px;
+  .ad-manage-container {
+    width: 100% !important;
+    padding: 16px !important;
   }
 
-  .ad-header {
-    padding: 20px 16px;
+  .ad-header-section {
+    padding: 20px 16px !important;
   }
 
-  .ad-add-row {
-    flex-direction: column;
-    gap: 12px;
+  .ad-add-form {
+    flex-direction: column !important;
+    gap: 12px !important;
   }
 
-  .input,
-  .select-input {
-    width: 100%;
-    min-width: 0;
+  .form-input,
+  .form-select {
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
-  .btn {
-    width: 100%;
+  .form-btn {
+    width: 100% !important;
   }
 
-  .ad-card {
-    padding: 16px;
-    overflow-x: auto;
+  .ad-table-card {
+    padding: 16px !important;
+    overflow-x: auto !important;
   }
 
-  .ad-table {
-    font-size: 13px;
+  .data-table {
+    font-size: 13px !important;
   }
 
-  .ad-table th,
-  .ad-table td {
-    padding: 10px 8px;
-    font-size: 12px;
+  .data-table th,
+  .data-table td {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
   }
 
-  .ad-table td input {
-    font-size: 12px;
-    padding: 4px 8px;
+  .table-input {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
   }
 
-  .btn-danger {
-    padding: 6px 12px;
-    font-size: 12px;
+  .delete-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
 
-  .empty-state {
-    padding: 40px 16px;
-    font-size: 14px;
+  .empty-message {
+    padding: 40px 16px !important;
+    font-size: 14px !important;
   }
 }
 </style>
