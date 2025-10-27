@@ -3,8 +3,8 @@
     <div class="ad-header">
       <h3 class="section-title">添加新广告</h3>
       <form class="ad-add-row" @submit.prevent="handleAddAd">
-        <input v-model="newAdImg" placeholder="广告图片链接" class="input" />
-        <input v-model="newAdUrl" placeholder="广告跳转链接" class="input" />
+        <input v-model="newAdImg" placeholder="广告图片链接" class="input" required />
+        <input v-model="newAdUrl" placeholder="广告跳转链接" class="input" required />
         <select v-model="newAdPos" class="input select-input">
           <option value="left">左侧广告</option>
           <option value="right">右侧广告</option>
@@ -144,10 +144,12 @@ async function deleteAd(id) {
 
 <style scoped>
 .ad-manage {
+  width: 100%;
   max-width: 1400px;
-  width: 90%;
   margin: 0 auto;
   padding: 20px;
+  background: #f5f6fa;
+  min-height: 600px;
 }
 
 .section-title {
@@ -297,7 +299,7 @@ async function deleteAd(id) {
 
 @media (max-width: 768px) {
   .ad-manage {
-    width: 95%;
+    width: 100%;
     padding: 16px;
   }
 
