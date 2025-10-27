@@ -5,10 +5,10 @@
       ⚠️ 如果你能看到这个红色区域，说明组件加载正常！
     </div>
 
-    <div class="ad-header" style="background: yellow; border: 5px solid orange; padding: 20px;">
-      <h3 style="color: black;">这是ad-header区域（黄色）</h3>
-      <form class="ad-add-row" @submit.prevent="handleAddAd" style="background: lime; border: 3px solid green; padding: 15px;">
-        <p style="color: black;">这是表单区域（绿色）</p>
+    <div class="ad-header" style="background: yellow !important; border: 5px solid orange !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; min-height: 100px !important; height: auto !important; overflow: visible !important; position: relative !important;">
+      <h3 style="color: black !important; font-size: 24px !important; display: block !important;">这是ad-header区域（黄色）</h3>
+      <form class="ad-add-row" @submit.prevent="handleAddAd" style="background: lime !important; border: 3px solid green !important; padding: 15px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; flex-wrap: wrap !important; gap: 10px !important; height: auto !important; min-height: 100px !important;">
+        <p style="color: black !important; font-size: 20px !important; width: 100% !important;">这是表单区域（绿色）</p>
         <input v-model="newAdImg" placeholder="广告图片链接" class="input" />
         <input v-model="newAdUrl" placeholder="广告跳转链接" class="input" />
         <select v-model="newAdPos" class="input select-input">
@@ -18,8 +18,8 @@
         <button class="btn" type="submit">添加广告</button>
       </form>
     </div>
-    <div class="ad-section" style="background: cyan; border: 5px solid blue; padding: 20px;">
-      <h3 class="section-title" style="color: black;">左侧广告列表（青色区域）</h3>
+    <div class="ad-section" style="background: cyan !important; border: 5px solid blue !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; min-height: 100px !important; margin-bottom: 20px !important;">
+      <h3 class="section-title" style="color: black !important; font-size: 24px !important; display: block !important;">左侧广告列表（青色区域）</h3>
       <div class="ad-card">
         <table class="ad-table" v-if="leftAds.length > 0">
           <thead><tr><th>图片</th><th>跳转链接</th><th>操作</th></tr></thead>
@@ -34,8 +34,8 @@
         <div v-else class="empty-state">暂无左侧广告</div>
       </div>
     </div>
-    <div class="ad-section" style="background: pink; border: 5px solid purple; padding: 20px;">
-      <h3 class="section-title" style="color: black;">右侧广告列表（粉色区域）</h3>
+    <div class="ad-section" style="background: pink !important; border: 5px solid purple !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; min-height: 100px !important; margin-bottom: 20px !important;">
+      <h3 class="section-title" style="color: black !important; font-size: 24px !important; display: block !important;">右侧广告列表（粉色区域）</h3>
       <div class="ad-card">
         <table class="ad-table" v-if="rightAds.length > 0">
           <thead><tr><th>图片</th><th>跳转链接</th><th>操作</th></tr></thead>
