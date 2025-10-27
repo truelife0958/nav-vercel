@@ -5,10 +5,10 @@
       ⚠️ 如果你能看到这个红色区域，说明组件加载正常！
     </div>
 
-    <div class="ad-header" style="background: yellow !important; border: 5px solid orange !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; min-height: 100px !important; height: auto !important; overflow: visible !important; position: relative !important;">
-      <h3 style="color: black !important; font-size: 24px !important; display: block !important;">这是ad-header区域（黄色）</h3>
-      <form class="ad-add-row" @submit.prevent="handleAddAd" style="background: lime !important; border: 3px solid green !important; padding: 15px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; flex-wrap: wrap !important; gap: 10px !important; height: auto !important; min-height: 100px !important;">
-        <p style="color: black !important; font-size: 20px !important; width: 100% !important;">这是表单区域（绿色）</p>
+    <div class="ad-header" style="position: fixed !important; top: 200px !important; left: 200px !important; width: 800px !important; background: yellow !important; border: 10px solid orange !important; padding: 20px !important; display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; overflow: visible !important; z-index: 99999 !important;">
+      <h3 style="color: black !important; font-size: 32px !important; display: block !important;">🟡 这是ad-header区域（黄色） - 固定定位测试</h3>
+      <form class="ad-add-row" @submit.prevent="handleAddAd" style="background: lime !important; border: 3px solid green !important; padding: 15px !important; display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; min-height: 100px !important;">
+        <p style="color: black !important; font-size: 24px !important; width: 100% !important; display: block !important;">🟢 这是表单区域（绿色） - 如果你能看到这个，说明CSS没问题</p>
         <input v-model="newAdImg" placeholder="广告图片链接" class="input" />
         <input v-model="newAdUrl" placeholder="广告跳转链接" class="input" />
         <select v-model="newAdPos" class="input select-input">
