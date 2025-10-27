@@ -1,5 +1,5 @@
 <template>
-  <div class="ad-manage">
+  <div class="ad-manage" style="display: block !important; width: 90% !important; max-width: 1400px !important; margin: 0 auto !important; padding: 20px !important; background: white !important; min-height: 800px !important; position: relative !important; z-index: 1 !important;">
     <!-- 艹！调试用的明显标记 -->
     <div style="background: red; color: white; padding: 20px; font-size: 24px; margin: 20px 0;">
       ⚠️ 如果你能看到这个红色区域，说明组件加载正常！
