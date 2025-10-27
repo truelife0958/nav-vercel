@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from './utils/toast';
 
 // 根据环境自动选择 API 地址
 // 生产环境使用相对路径 /api (Vercel 会自动路由到 Serverless Function)
@@ -8,11 +9,12 @@ const BASE_URL = import.meta.env.PROD
   : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api');
 const BASE = BASE_URL;
 
+// 艹！老王的响应拦截器，用漂亮的提示替代SB的alert！
 axios.interceptors.response.use(
   response => response,
   error => {
     console.error('API Error:', error);
-    
+
     if (error.response) {
       const { status, data } = error.response;
       // 修复错误消息显示问题
@@ -27,27 +29,38 @@ axios.interceptors.response.use(
 
       if (status === 401) {
         const msg = data?.error || '';
-        if (msg.includes('过期') || msg.includes('无效token') || msg.includes('未授权')) {
+        if (msg.includes('过期') || msg.includes('无效') || msg.includes('Token')) {
           localStorage.removeItem('token');
           if (window.location.pathname.includes('/admin')) {
-            alert('登录已过期，请重新登录');
-            window.location.reload();
+            toast.error('登录已过期，请重新登录', 3000);
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }
         } else {
-          alert(`认证失败: ${errorMsg}`);
+          toast.error(`认证失败: ${errorMsg}`, 4000);
         }
+      } else if (status === 429) {
+        // 限流错误
+        toast.warning(`${errorMsg}`, 4000);
+      } else if (status >= 500) {
+        // 服务器错误
+        toast.error(`服务器错误 (${status}): ${errorMsg}`, 5000);
+      } else if (status >= 400) {
+        // 客户端错误
+        toast.warning(`${errorMsg}`, 4000);
       } else {
-        // 对于其他所有错误，显示详细的错误信息
-        alert(`请求失败 (${status}): ${errorMsg}`);
+        // 其他错误
+        toast.error(`请求失败 (${status}): ${errorMsg}`, 4000);
       }
     } else if (error.request) {
       // 请求已发出，但没有收到响应
       console.error('No response received:', error.request);
-      alert('网络错误：无法连接到服务器，请检查网络连接或服务器状态');
+      toast.error('网络错误：无法连接到服务器', 5000);
     } else {
       // 设置请求时触发了一个错误
       console.error('Request setup error:', error.message);
-      alert(`请求错误: ${error.message}`);
+      toast.error(`请求错误: ${error.message}`, 4000);
     }
     return Promise.reject(error);
   }

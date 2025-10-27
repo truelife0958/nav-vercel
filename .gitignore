@@ -48,4 +48,23 @@ temp/
 # Vercel
 .vercel
 
-.vercel
+# 测试文件和临时脚本（老王添加）
+test-*.ps1
+test-*.sh
+test-*.js
+*.bat
+*.patch
+
+# 临时文档（老王添加）
+*_TEMP.md
+*_DRAFT.md
+*.bak
+*.backup
+
+# 工作流临时文件（老王添加）
+.spec-workflow/
+
+# 开发临时数据（老王添加）
+Web sites.md
+migrate-*.sql
+migrate-*.js

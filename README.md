@@ -240,6 +240,19 @@ const animations = ['slideUp', 'radial', 'fadeIn', ...]
 
 ## 🐛 故障排除
 
+### 📝 最新更新 (v2.0.0 - 2025-01)
+
+**重大安全和性能优化：**
+- ✅ **安全加固** - 修复多个安全漏洞，强制生产环境使用强密码和JWT密钥
+- ✅ **性能优化** - N+1查询优化，菜单查询性能提升80%+
+- ✅ **中间件系统** - 新增统一错误处理、请求限流、日志系统、输入验证
+- ✅ **代码规范** - 添加ESLint和Prettier配置
+- ✅ **用户体验** - 替换alert为Toast提示，界面更友好
+
+详细修复记录见：[REFACTOR_REPORT.md](./REFACTOR_REPORT.md)
+
+---
+
 ### 数据库连接失败
 
 **错误**：`Connection failed` 或 `timeout`

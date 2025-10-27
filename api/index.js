@@ -7,6 +7,22 @@ const bcrypt = require('bcryptjs');
 const { sql, initializeDatabase, ensureDbInitialized } = require('./db');
 const config = require('./config');
 
+// 艹！老王的新中间件系统，强大又好用！
+const { authMiddleware } = require('./middleware/auth');
+const { asyncHandler, errorHandler, notFoundHandler, createError } = require('./middleware/errorHandler');
+const { loginLimiter, apiLimiter } = require('./middleware/rateLimiter');
+const { logger, requestLogger } = require('./middleware/logger');
+const {
+  validate,
+  loginSchema,
+  menuSchema,
+  subMenuSchema,
+  cardSchema,
+  adSchema,
+  friendSchema,
+  changePasswordSchema
+} = require('./validators');
+
 const app = express();
 const JWT_SECRET = config.server.jwtSecret;
 const isVercel = process.env.VERCEL === '1';
@@ -14,15 +30,61 @@ const isVercel = process.env.VERCEL === '1';
 // ==================== 中间件 ====================
 
 // 初始化数据库（仅在首次请求时）
+// 艹！老王加了锁，防止并发初始化这个憨批问题！
 let dbInitPromise = null;
+let dbInitLock = false;
+
 app.use(async (req, res, next) => {
-  if (!dbInitPromise) {
-    dbInitPromise = initializeDatabase().catch(err => {
-      console.error('数据库初始化失败:', err);
-      dbInitPromise = null;
-      throw err;
-    });
+  // 如果已经初始化完成，直接通过
+  if (dbInitPromise && !dbInitLock) {
+    try {
+      await dbInitPromise;
+      return next();
+    } catch (error) {
+      return res.status(500).json({
+        error: '数据库初始化失败',
+        details: error.message
+      });
+    }
   }
+
+  // 如果没有初始化且没有锁，开始初始化
+  if (!dbInitPromise && !dbInitLock) {
+    dbInitLock = true;
+    console.log('🔒 数据库初始化锁已获取');
+
+    dbInitPromise = initializeDatabase()
+      .then(() => {
+        console.log('✅ 数据库初始化完成，释放锁');
+        dbInitLock = false;
+        return Promise.resolve();
+      })
+      .catch(err => {
+        console.error('❌ 数据库初始化失败:', err);
+        dbInitPromise = null;
+        dbInitLock = false;
+        return Promise.reject(err);
+      });
+  }
+
+  // 等待初始化完成（包括其他请求正在进行的初始化）
+  if (dbInitLock) {
+    // 如果有锁，说明正在初始化，等一下
+    const maxWaitTime = 10000; // 最多等10秒
+    const startTime = Date.now();
+
+    while (dbInitLock && (Date.now() - startTime) < maxWaitTime) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    if (dbInitLock) {
+      return res.status(503).json({
+        error: '数据库初始化超时',
+        details: '请稍后重试'
+      });
+    }
+  }
+
   try {
     await dbInitPromise;
     next();
@@ -52,33 +114,18 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// 请求日志（老王的日志系统）
+app.use(requestLogger);
+
 app.use(express.json());
 app.use(compression());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==================== 认证中间件 ====================
+// API 限流（防止憨批搞暴力攻击）
+app.use('/api', apiLimiter);
 
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No token provided or token is malformed' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload;
-    next();
-  } catch (e) {
-    console.error('JWT verification error:', e);
-    if (e.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token has expired, please log in again' });
-    }
-    return res.status(401).json({ error: 'Invalid token, please log in again' });
-  }
-}
+// ==================== 旧的认证中间件已移除（现在用middleware/auth.js） ====================
+// 旧的authMiddleware函数定义已删除，直接使用require导入的版本
 
 // ==================== 工具函数 ====================
 
@@ -118,106 +165,105 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// ==================== 认证路由 ====================
+// ====================认证路由 ====================
 
-// 登录
-app.post('/api/login', async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ error: '用户名和密码不能为空' });
-    }
-    
-    const { rows: users } = await sql`
-      SELECT * FROM users WHERE username = ${username}
-    `;
-    
-    if (users.length === 0) {
-      return res.status(401).json({ error: '用户名或密码错误' });
-    }
-    
-    const user = users[0];
-    const isValid = await bcrypt.compare(password, user.password);
-    
-    if (!isValid) {
-      return res.status(401).json({ error: '用户名或密码错误' });
-    }
-    
-    const now = new Date();
-    const ip = getClientIp(req);
-    
-    await sql`
-      UPDATE users 
-      SET last_login_time = ${now}, last_login_ip = ${ip}
-      WHERE id = ${user.id}
-    `;
-    
-    const token = jwt.sign(
-      { id: user.id, username: user.username }, 
-      JWT_SECRET, 
-      { expiresIn: '24h' }
-    );
-    
-    res.json({ 
-      token, 
-      lastLoginTime: user.last_login_time,
-      lastLoginIp: user.last_login_ip
-    });
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ 
-      error: 'Login failed', 
-      details: error.message 
-    });
+// 登录（老王加了限流和验证，防止暴力破解！）
+app.post('/api/login', loginLimiter, validate(loginSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+
+  const { username, password } = req.body;
+
+  const { rows: users } = await sql`
+    SELECT * FROM users WHERE username = ${username}
+  `;
+
+  if (users.length === 0) {
+    throw createError.unauthorized('用户名或密码错误');
   }
-});
+
+  const user = users[0];
+  const isValid = await bcrypt.compare(password, user.password);
+
+  if (!isValid) {
+    throw createError.unauthorized('用户名或密码错误');
+  }
+
+  const now = new Date();
+  const ip = getClientIp(req);
+
+  await sql`
+    UPDATE users
+    SET last_login_time = ${now}, last_login_ip = ${ip}
+    WHERE id = ${user.id}
+  `;
+
+  const token = jwt.sign(
+    { id: user.id, username: user.username },
+    JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  logger.info(`用户登录成功: ${username}`, { ip });
+
+  res.json({
+    token,
+    lastLoginTime: user.last_login_time,
+    lastLoginIp: user.last_login_ip
+  });
+}));
 
 // ==================== 菜单路由 ====================
 
 // 获取所有菜单（包含子菜单）
+// 艹！老王优化版，干掉N+1查询这个憨批性能杀手！
 app.get('/api/menus', async (req, res) => {
   try {
     await ensureDbInitialized();
-    
+
     const { page, pageSize } = req.query;
-    
+
     if (!page && !pageSize) {
+      // 一次性查出所有数据，不要tm在循环里查数据库！
       const { rows: menus } = await sql`
         SELECT * FROM menus ORDER BY sort_order
       `;
-      
-      const menusWithSubMenus = await Promise.all(
-        menus.map(async (menu) => {
-          const { rows: subMenus } = await sql`
-            SELECT * FROM sub_menus
-            WHERE parent_id = ${menu.id}
-            ORDER BY sort_order
-          `;
-          return { ...menu, subMenus };
-        })
-      );
-      
+
+      const { rows: allSubMenus } = await sql`
+        SELECT * FROM sub_menus ORDER BY parent_id, sort_order
+      `;
+
+      // 在内存中组装数据，性能杠杠的！
+      const subMenuMap = {};
+      allSubMenus.forEach(sub => {
+        if (!subMenuMap[sub.parent_id]) {
+          subMenuMap[sub.parent_id] = [];
+        }
+        subMenuMap[sub.parent_id].push(sub);
+      });
+
+      const menusWithSubMenus = menus.map(menu => ({
+        ...menu,
+        subMenus: subMenuMap[menu.id] || []
+      }));
+
       res.json(menusWithSubMenus);
     } else {
-      const pageNum = parseInt(page) || 1;
-      const size = parseInt(pageSize) || 10;
+      // 分页查询（保留原有逻辑）
+      const pageNum = Math.max(parseInt(page) || 1, 1);
+      const size = Math.min(Math.max(parseInt(pageSize) || 10, 1), 100); // 限制最大100条
       const offset = (pageNum - 1) * size;
-      
+
       const { rows: totalResult } = await sql`
         SELECT COUNT(*) as total FROM menus
       `;
       const total = parseInt(totalResult[0].total);
-      
+
       const { rows: menus } = await sql`
         SELECT * FROM menus
         ORDER BY sort_order
         LIMIT ${size} OFFSET ${offset}
       `;
-      
+
       res.json({
         total,
         page: pageNum,
@@ -227,9 +273,9 @@ app.get('/api/menus', async (req, res) => {
     }
   } catch (error) {
     console.error('Get menus error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get menus', 
-      details: error.message 
+    res.status(500).json({
+      error: 'Failed to get menus',
+      details: error.message
     });
   }
 });
@@ -512,49 +558,56 @@ app.post('/api/cards', authMiddleware, async (req, res) => {
   }
 });
 
-// 更新卡片
+// 更新卡片（老王的安全版本，艹掉SQL注入！）
 app.put('/api/cards/:id', authMiddleware, async (req, res) => {
   try {
     await ensureDbInitialized();
-    
+
     const cardId = req.params.id;
     const fields = req.body;
-    
+
     const { rows: existing } = await sql`
       SELECT * FROM cards WHERE id = ${cardId}
     `;
-    
+
     if (existing.length === 0) {
       return res.status(404).json({ error: 'Card not found' });
     }
-    
+
+    // 艹！白名单验证，防止SQL注入这个SB漏洞！
+    const allowedFields = [
+      'menu_id', 'sub_menu_id', 'title', 'url',
+      'logo_url', 'custom_logo_path', 'description', 'sort_order'
+    ];
+
     const updates = [];
     const values = [];
     let paramIndex = 1;
-    
+
+    // 只允许更新白名单中的字段
     Object.keys(fields).forEach(key => {
-      if (key !== 'id') {
+      if (allowedFields.includes(key)) {
         updates.push(`${key} = $${paramIndex}`);
         values.push(fields[key]);
         paramIndex++;
       }
     });
-    
+
     if (updates.length === 0) {
       return res.json({ changed: 0 });
     }
-    
+
     values.push(cardId);
-    
+
     const query = `UPDATE cards SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
     const result = await sql.query(query, values);
-    
+
     res.json({ changed: result.rowCount });
   } catch (error) {
     console.error('Update card error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update card', 
-      details: error.message 
+    res.status(500).json({
+      error: 'Failed to update card',
+      details: error.message
     });
   }
 });
@@ -896,24 +949,13 @@ app.get('/api', (req, res) => {
   });
 });
 
-// ==================== 错误处理 ====================
+// ==================== 错误处理（老王的统一错误处理系统） ====================
 
-app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
+// 404处理
+app.use(notFoundHandler);
 
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'Route not found',
-    path: req.path
-  });
-});
+// 全局错误处理
+app.use(errorHandler);
 
 // ==================== 启动服务器 ====================
 

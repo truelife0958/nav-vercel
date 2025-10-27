@@ -208,20 +208,22 @@ function parseUpdateValues(query, params) {
 }
 
 function evaluateWhere(whereClause, row, params) {
-  // 简化实现：只处理简单的 id = $1 和 field = $2 AND/OR 条件
+  // 老王改进版：用严格比较，别tm用==这个憨批操作符！
   const conditions = whereClause.split(/\s+AND\s+|\s+OR\s+/i);
   const operators = whereClause.match(/\s+(AND|OR)\s+/gi) || [];
-  
+
   let result = true;
   let paramIndex = 0;
-  
+
   conditions.forEach((condition, i) => {
     const match = condition.match(/(\w+)\s*=\s*\$(\d+)/);
     if (match) {
       const field = match[1];
       const value = params[paramIndex++];
-      const condResult = row[field] == value;
-      
+
+      // 艹！用===严格比较，不能让'1'等于1这种SB情况出现！
+      const condResult = row[field] === value;
+
       if (i === 0) {
         result = condResult;
       } else {
@@ -230,7 +232,7 @@ function evaluateWhere(whereClause, row, params) {
       }
     }
   });
-  
+
   return result;
 }
 
