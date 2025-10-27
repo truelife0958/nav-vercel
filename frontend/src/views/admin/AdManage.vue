@@ -144,8 +144,8 @@ async function deleteAd(id) {
   color: #2566d8;
 }
 .ad-header {
-  height: 32px;
-  margin-bottom: 64px;
+  min-height: 80px;
+  margin-bottom: 32px;
 }
 .ad-section {
   margin-bottom: 32px;

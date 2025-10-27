@@ -5,10 +5,10 @@
       <p class="subtitle">支持主菜单和子菜单分类，批量导入、JSON文件导入、HTML转换及AI辅助优化</p>
     </div>
     <div class="card-add">
-      <select :value="selectedMenuId" @change="$emit('update:selectedMenuId', $event.target.value)" class="input narrow">
+      <select :value="selectedMenuId" @change="$emit('update:selectedMenuId', parseInt($event.target.value, 10))" class="input narrow">
         <option v-for="menu in menus" :value="menu.id" :key="menu.id">{{ menu.name }}</option>
       </select>
-      <select :value="selectedSubMenuId" @change="$emit('update:selectedSubMenuId', $event.target.value)" class="input narrow">
+      <select :value="selectedSubMenuId" @change="$emit('update:selectedSubMenuId', $event.target.value === '' ? '' : parseInt($event.target.value, 10))" class="input narrow">
         <option value="">主菜单</option>
         <option v-for="subMenu in currentSubMenus" :value="subMenu.id" :key="subMenu.id">{{ subMenu.name }}</option>
       </select>
