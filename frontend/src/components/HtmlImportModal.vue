@@ -29,7 +29,7 @@
               <option v-for="menu in menus" :value="menu.id" :key="menu.id">{{ menu.name }}</option>
             </select>
             <select v-model="htmlImportTargetSubMenuId" class="input category-select">
-              <option value="">主菜单</option>
+              <option value="">精选</option>
               <option v-for="subMenu in htmlImportTargetSubMenus" :value="subMenu.id" :key="subMenu.id">{{ subMenu.name }}</option>
             </select>
           </div>
