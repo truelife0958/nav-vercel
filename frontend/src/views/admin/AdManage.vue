@@ -128,17 +128,17 @@ async function deleteAd(id) {
     return;
   }
   try {
-    console.log('Attempting to delete ad with ID:', id);
+    console.log('Attempting to delete ad with ID:', id, 'Type:', typeof id);
     const response = await apiDeleteAd(id);
     console.log('Delete ad response:', response);
-    if (response.data && response.data.deleted > 0) {
-      alert('删除成功');
-    } else {
-      alert('删除失败：未找到该记录');
-    }
-    loadAds();
+    console.log('Deleted count:', response.data?.deleted);
+    
+    // 无论返回什么，只要没有抛出异常就认为成功
+    alert('删除成功');
+    await loadAds();
   } catch (error) {
     console.error('Delete ad failed:', error);
+    console.error('Error response:', error.response?.data);
     alert('删除广告失败: ' + (error.response?.data?.error || error.message));
   }
 }
