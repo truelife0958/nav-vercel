@@ -1,5 +1,10 @@
 <template>
   <div class="ad-manage">
+    <!-- 艹！调试用的明显标记 -->
+    <div style="background: red; color: white; padding: 20px; font-size: 24px; margin: 20px 0;">
+      ⚠️ 如果你能看到这个红色区域，说明组件加载正常！
+    </div>
+
     <div class="ad-header">
       <form class="ad-add-row" @submit.prevent="handleAddAd">
         <input v-model="newAdImg" placeholder="广告图片链接" class="input" />
