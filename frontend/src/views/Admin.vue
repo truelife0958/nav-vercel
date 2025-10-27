@@ -427,9 +427,11 @@ function closeSider() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 10px 0 0 0;
+  align-items: stretch;
+  padding: 20px;
   margin-top: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .admin-footer {
   margin-top: auto;
