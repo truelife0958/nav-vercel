@@ -1,82 +1,63 @@
-# 🚀 Nav Pro - Vercel 版本
+# 🚀 Nav Pro - Vercel 全栈导航系统
 
-基于 nav-pro 优化的 Vercel 全栈导航系统，支持一键部署和数据持久化。
+基于 Vue 3 + Express.js 的现代化导航网站，支持 Vercel 一键部署和数据持久化。
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/truelife0958/nav-vercel)
 
 ---
 
-## ✨ 特性
+## ✨ 核心特性
 
-### 前端特性
-- 🎨 现代化 Vue 3 界面
-- 📱 完美响应式设计
-- 🔍 聚合搜索（Google/百度/Bing/GitHub/站内）
-- 🎭 7种随机进场动画
-- 🔗 友情链接展示
-- 📢 广告位支持
+### 🎨 前端功能
+- **现代化界面** - Vue 3 + 响应式设计
+- **聚合搜索** - 支持 Google/百度/Bing/GitHub/站内搜索
+- **动画效果** - 7种随机进场动画
+- **友链展示** - 友情链接管理
+- **广告系统** - 灵活的广告位配置
 
-### 后端特性
-- 💾 **Vercel Postgres** - 真正的数据持久化
-- 🔒 JWT 身份认证
-- 🚀 Serverless 架构
-- 🔄 自动数据库初始化
-- 📊 完整的 RESTful API
+### 🔧 后端功能
+- **数据持久化** - Vercel Postgres 数据库
+- **身份认证** - JWT Token 认证
+- **Serverless** - 无服务器架构
+- **自动初始化** - 数据库自动创建和初始化
+- **RESTful API** - 完整的 API 接口
 
-### 管理功能
-- 👤 用户认证登录
-- 📋 栏目管理（主菜单/子菜单）
-- 🃏 导航卡片管理
-- 🔗 友情链接管理
-- 📢 广告位管理
+### 🛠️ 管理后台
+- 用户认证登录
+- 菜单栏目管理（主菜单/子菜单）
+- 导航卡片管理
+- 友情链接管理
+- 广告位管理
 
 ---
 
 ## 🎯 快速部署
 
-### 方式一：一键部署到 Vercel（推荐）
+### 一键部署到 Vercel（推荐）
 
 1. **点击部署按钮**
-   
+
    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/truelife0958/nav-vercel)
 
-2. **设置 Postgres 数据库**
+2. **创建 Postgres 数据库**
    - 部署完成后，进入 Vercel Dashboard
    - 点击 **Storage** → **Create Database** → **Postgres**
-   - 选择区域，点击 **Create**
-   - 点击 **Connect Project** 连接到你的项目
+   - 选择区域并创建
+   - 点击 **Connect Project** 连接到项目
 
 3. **配置环境变量**
    - 进入 **Settings** → **Environment Variables**
    - 添加以下变量：
      ```
-     JWT_SECRET=your-super-secret-key-123456
+     JWT_SECRET=your-super-secret-key-change-this
      ADMIN_USERNAME=admin
      ADMIN_PASSWORD=your-secure-password
      ```
-   - 保存后重新部署
 
-4. **访问网站**
-   - 首页：`https://你的域名.vercel.app/`
+4. **重新部署并访问**
+   - 保存环境变量后，触发重新部署
+   - 访问：`https://你的域名.vercel.app/`
    - 管理后台：`https://你的域名.vercel.app/admin`
-
-### 方式二：通过 GitHub
-
-```bash
-# 1. Fork 或 Clone 项目
-git clone https://github.com/truelife0958/nav-vercel.git
-cd nav-vercel
-
-# 2. 推送到你的 GitHub 仓库
-git remote set-url origin https://github.com/你的用户名/nav-vercel.git
-git push -u origin main
-
-# 3. 在 Vercel 导入 GitHub 仓库
-# 访问 https://vercel.com/new
-# 选择你的仓库并导入
-
-# 4. 按照"方式一"的步骤 2-4 设置数据库和环境变量
-```
 
 ---
 
@@ -86,41 +67,27 @@ git push -u origin main
 - Node.js >= 18.0.0
 - npm >= 9.0.0
 
-### 安装依赖
+### 安装和启动
 
 ```bash
-# 安装后端依赖
-cd api
+# 1. 克隆项目
+git clone https://github.com/truelife0958/nav-vercel.git
+cd nav-vercel
+
+# 2. 安装依赖
 npm install
+cd frontend && npm install && cd ..
 
-# 安装前端依赖
-cd ../frontend
-npm install
-```
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，配置数据库连接
 
-### 启动开发服务器
-
-```bash
-# 终端 1: 启动后端 API
-cd api
-node index.js
-# 运行在 http://localhost:3001
+# 4. 启动开发服务器
+# 终端 1: 启动后端
+cd api && node index.js
 
 # 终端 2: 启动前端
-cd frontend
-npm run dev
-# 运行在 http://localhost:3002
-```
-
-### 使用 Vercel Dev（推荐）
-
-```bash
-# 安装 Vercel CLI
-npm install -g vercel
-
-# 在项目根目录运行
-vercel dev
-# 自动启动前后端，访问 http://localhost:3000
+cd frontend && npm run dev
 ```
 
 ---
@@ -131,81 +98,59 @@ vercel dev
 nav-vercel/
 ├── frontend/              # Vue 3 前端应用
 │   ├── src/
-│   │   ├── components/   # Vue 组件
+│   │   ├── components/   # 公共组件
 │   │   ├── views/        # 页面视图
-│   │   ├── api.js        # API 接口封装
+│   │   │   ├── Home.vue  # 首页
+│   │   │   ├── Admin.vue # 管理后台
+│   │   │   └── admin/    # 管理子页面
+│   │   ├── api.js        # API 接口
 │   │   └── router.js     # 路由配置
-│   └── package.json
+│   └── dist/             # 构建输出
 │
-├── api/                  # Serverless Functions
-│   ├── index.js          # API 主入口
-│   ├── db.js             # 数据库连接层
-│   ├── memoryDb.js       # 内存数据库（降级方案）
+├── api/                  # Express.js 后端
+│   ├── index.js          # 主入口（Serverless Function）
+│   ├── db.js             # Postgres 数据库
 │   ├── config.js         # 配置文件
-│   ├── routes/           # API 路由
-│   │   ├── menu.js       # 菜单管理
-│   │   ├── card.js       # 卡片管理
-│   │   ├── auth.js       # 用户认证
-│   │   ├── ad.js         # 广告管理
-│   │   ├── friend.js     # 友链管理
-│   │   └── user.js       # 用户管理
-│   └── package.json
+│   ├── validators.js     # 数据验证
+│   └── middleware/       # 中间件（认证、日志、限流等）
 │
-├── vercel.json           # Vercel 配置
-├── .vercelignore         # Vercel 忽略文件
-└── README.md            # 本文档
+├── vercel.json           # Vercel 部署配置
+├── .vercelignore         # 部署忽略文件
+└── README.md             # 本文档
 ```
 
 ---
 
-## 🔐 环境变量配置
+## 🔐 环境变量
 
-| 变量名 | 说明 | 必需 |
-|--------|------|------|
-| `POSTGRES_URL` | Postgres 连接字符串 | ✅ 必需（Vercel 自动添加） |
-| `JWT_SECRET` | JWT 加密密钥 | ✅ 必需 |
-| `ADMIN_USERNAME` | 管理员用户名 | ⚪ 可选（默认: admin） |
-| `ADMIN_PASSWORD` | 管理员密码 | ⚪ 可选（默认: 123456） |
+| 变量名 | 说明 | 必需 | 默认值 |
+|--------|------|------|--------|
+| `POSTGRES_URL` | Postgres 连接字符串 | ✅ | - |
+| `JWT_SECRET` | JWT 加密密钥 | ✅ | - |
+| `ADMIN_USERNAME` | 管理员用户名 | ⚪ | admin |
+| `ADMIN_PASSWORD` | 管理员密码 | ⚪ | 123456 |
+| `CORS_ORIGINS` | 允许的跨域源 | ⚪ | 自动配置 |
 
----
-
-## 🗄️ 数据库说明
-
-### Vercel Postgres
-
-项目使用 Vercel Postgres 作为主数据库：
-
-- ✅ 数据永久保存
-- ✅ 自动备份
-- ✅ 支持并发访问
-- ✅ 免费额度：256MB 存储 + 60小时计算时间/月
-
-### 降级方案
-
-如果未配置 Postgres，系统会自动使用内存数据库：
-
-- ⚠️ 数据在重启后丢失
-- ⚠️ 仅用于开发和测试
-- ⚠️ 不推荐生产环境使用
+**安全提示**：生产环境必须修改默认密码和 JWT 密钥！
 
 ---
 
-## 🌐 API 端点
+## 🌐 API 接口
 
-### 公开端点（无需认证）
+### 公开接口
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/api/health` | 健康检查 |
 | GET | `/api/menus` | 获取所有菜单 |
-| GET | `/api/cards/:menuId` | 获取指定菜单的卡片 |
+| GET | `/api/cards/:menuId` | 获取菜单卡片 |
 | GET | `/api/friends` | 获取友情链接 |
 | GET | `/api/ads` | 获取广告位 |
 | POST | `/api/login` | 用户登录 |
 
-### 需要认证的端点
+### 需要认证的接口
 
-所有 POST/PUT/DELETE 操作都需要在请求头携带 JWT Token：
+所有管理操作（POST/PUT/DELETE）需要在请求头携带 JWT Token：
 
 ```javascript
 Authorization: Bearer <your-token>
@@ -213,55 +158,58 @@ Authorization: Bearer <your-token>
 
 ---
 
-## 🎨 自定义配置
+## 🗄️ 数据库
 
-### 修改 API 地址
+### Vercel Postgres（推荐）
 
-**开发环境** (`frontend/.env.development`):
-```env
-VITE_API_BASE_URL=http://localhost:3001/api
-```
+- ✅ 数据永久保存
+- ✅ 自动备份
+- ✅ 免费额度：256MB 存储 + 60小时/月
 
-**生产环境**：自动使用相对路径 `/api`
+### 内存数据库（降级方案）
 
-### 修改前端主题
+未配置 Postgres 时自动使用内存数据库：
+- ⚠️ 数据在重启后丢失
+- ⚠️ 仅用于开发测试
 
-编辑 `frontend/src/views/Home.vue`：
+---
 
-```vue
-<!-- 修改背景渐变色 -->
-<div class="bg-gradient-to-br from-[#0a0e27] to-[#1e293b]">
+## 🎨 技术栈
 
-<!-- 修改卡片动画 -->
-const animations = ['slideUp', 'radial', 'fadeIn', ...]
-```
+### 前端
+- **Vue 3** - 渐进式 JavaScript 框架
+- **Vue Router** - 官方路由管理
+- **Axios** - HTTP 客户端
+- **Vite** - 下一代前端构建工具
+
+### 后端
+- **Express.js** - Node.js Web 框架
+- **Vercel Serverless** - 无服务器函数
+- **Vercel Postgres** - 托管数据库
+- **JWT** - JSON Web Token 认证
+- **bcrypt** - 密码加密
 
 ---
 
 ## 🐛 故障排除
 
-### 📝 最新更新 (v2.0.0 - 2025-01)
-
-**重大安全和性能优化：**
-- ✅ **安全加固** - 修复多个安全漏洞，强制生产环境使用强密码和JWT密钥
-- ✅ **性能优化** - N+1查询优化，菜单查询性能提升80%+
-- ✅ **中间件系统** - 新增统一错误处理、请求限流、日志系统、输入验证
-- ✅ **代码规范** - 添加ESLint和Prettier配置
-- ✅ **用户体验** - 替换alert为Toast提示，界面更友好
-
-详细修复记录见：[REFACTOR_REPORT.md](./REFACTOR_REPORT.md)
-
----
-
 ### 数据库连接失败
 
-**错误**：`Connection failed` 或 `timeout`
+**症状**：`Connection failed` 或 `timeout`
 
-**解决**：
-1. 确认 Postgres 数据库已创建
+**解决方案**：
+1. 确认已创建 Postgres 数据库
 2. 确认数据库已连接到项目
-3. 检查环境变量 `POSTGRES_URL` 是否存在
+3. 检查环境变量 `POSTGRES_URL`
 4. 重新部署项目
+
+### CORS 错误
+
+**症状**：前端请求被阻止
+
+**解决方案**：
+- 检查 `api/index.js` 中的 CORS 配置
+- 确保你的域名在 `allowedOrigins` 列表中
 
 ### 查看日志
 
@@ -269,33 +217,13 @@ const animations = ['slideUp', 'radial', 'fadeIn', ...]
 1. 进入项目
 2. 点击 **Functions** 标签
 3. 选择 `api/index.js`
-4. 查看实时日志
-
-### API 请求 CORS 错误
-
-检查 `api/index.js` 的 CORS 配置，确保包含你的域名。
-
----
-
-## 📊 技术栈
-
-### 前端
-- Vue 3
-- Vue Router
-- Axios
-- Vite
-
-### 后端
-- Express.js
-- Vercel Serverless Functions
-- Vercel Postgres
-- JWT + bcrypt
+4. 查看实时日志和错误信息
 
 ---
 
 ## 📝 开源协议
 
-MIT License - 查看 [LICENSE](LICENSE) 文件了解详情
+MIT License
 
 ---
 
@@ -303,28 +231,12 @@ MIT License - 查看 [LICENSE](LICENSE) 文件了解详情
 
 **marry** - [GitHub](https://github.com/truelife0958)
 
-基于 [nav-pro-master](https://github.com/truelife0958/nav-pro) 优化
-
 ---
 
-## ⭐ Star History
+## ⭐ 支持项目
 
 如果这个项目对你有帮助，请给它一个 ⭐ Star！
 
 ---
-
-## 🎉 快速开始
-
-```bash
-# 1. Clone 项目
-git clone https://github.com/truelife0958/nav-vercel.git
-
-# 2. 一键部署到 Vercel
-vercel --prod
-
-# 3. 设置 Postgres 数据库
-
-# 4. 访问你的网站！
-```
 
 **3 分钟即可完成部署！** 🚀
