@@ -4,8 +4,6 @@ const path = require('path');
 const compression = require('compression');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
-const fs = require('fs');
 const { sql, initializeDatabase, ensureDbInitialized } = require('./db');
 const config = require('./config');
 
@@ -848,72 +846,6 @@ app.get('/api/users', authMiddleware, async (req, res) => {
     });
   }
 });
-
-// ==================== 文件上传配置 ====================
-
-// 确保 uploads 目录存在
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// 配置 multer 存储
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    // 生成唯一文件名：时间戳 + 随机数 + 原扩展名
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'logo-' + uniqueSuffix + ext);
-  }
-});
-
-// 文件过滤器：只允许图片
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('只允许上传图片文件（JPEG、PNG、GIF、WebP）'));
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 2 * 1024 * 1024 // 限制 2MB
-  }
-});
-
-// ==================== 文件上传路由 ====================
-
-// Logo 上传接口
-app.post('/api/upload', authMiddleware, upload.single('logo'), asyncHandler(async (req, res) => {
-  if (!req.file) {
-    throw createError.badRequest('没有上传文件');
-  }
-  
-  const fileUrl = `/uploads/${req.file.filename}`;
-  
-  logger.info('文件上传成功', {
-    user: req.user.username,
-    filename: req.file.filename,
-    size: req.file.size
-  });
-  
-  res.json({
-    message: '文件上传成功',
-    url: fileUrl,
-    filename: req.file.filename,
-    size: req.file.size
-  });
-}));
 
 // ==================== 品牌设置路由 ====================
 

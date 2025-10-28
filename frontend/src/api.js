@@ -98,12 +98,6 @@ export const deleteCard = (id) => axios.delete(`${BASE}/cards/${id}`, { headers:
 export const getSmartIcon = (url) => axios.get(`${BASE}/icons/smart`, { params: { url } });
 export const getBatchIcons = (urls) => axios.post(`${BASE}/icons/batch`, { urls }, { headers: authHeaders() });
 
-export const uploadLogo = (file) => {
-  const formData = new FormData();
-  formData.append('logo', file);
-  return axios.post(`${BASE}/upload`, formData, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
-};
-
 // 广告API
 export const getAds = () => axios.get(`${BASE}/ads`);
 export const addAd = (data) => axios.post(`${BASE}/ads`, data, { headers: authHeaders() });

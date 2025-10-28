@@ -18,45 +18,23 @@
 
         <!-- 品牌Logo -->
         <div class="form-group">
-          <label>品牌Logo：</label>
-          <div class="logo-upload-area">
-            <div class="logo-preview">
-              <img 
-                v-if="formData.brand_logo" 
-                :src="formData.brand_logo" 
-                alt="品牌Logo预览" 
-                class="preview-image"
-              />
-              <div v-else class="preview-placeholder">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <path d="M21 15l-5-5L5 21"/>
-                </svg>
-                <p>暂无Logo</p>
-              </div>
-            </div>
-            <div class="upload-controls">
-              <input 
-                ref="fileInput" 
-                type="file" 
-                accept="image/*" 
-                @change="handleFileChange" 
-                style="display: none"
-              />
-              <button @click="triggerFileInput" class="btn btn-secondary">
-                选择图片
-              </button>
-              <button 
-                v-if="formData.brand_logo" 
-                @click="clearLogo" 
-                class="btn btn-danger"
-              >
-                清除
-              </button>
-            </div>
-            <p class="upload-tip">推荐尺寸: 200x200px，支持 JPG、PNG、GIF 格式，最大 2MB</p>
+          <label>品牌Logo URL：</label>
+          <input
+            v-model="formData.brand_logo"
+            type="url"
+            placeholder="请输入Logo图片URL（如：https://example.com/logo.png）"
+            class="input"
+            maxlength="500"
+          />
+          <div v-if="formData.brand_logo" class="logo-preview-small">
+            <img
+              :src="formData.brand_logo"
+              alt="Logo预览"
+              @error="handleImageError"
+              class="preview-image-small"
+            />
           </div>
+          <p class="input-tip">请输入完整的图片URL地址，推荐使用图床或CDN服务</p>
         </div>
 
         <!-- 品牌口号 -->
@@ -190,7 +168,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getBrandSettings, updateBrandSettings, uploadLogo } from '../../api';
+import { getBrandSettings, updateBrandSettings } from '../../api';
 
 const formData = ref({
   brand_name: '',
@@ -207,8 +185,6 @@ const originalData = ref({});
 const loading = ref(false);
 const message = ref('');
 const messageType = ref('success');
-const fileInput = ref(null);
-const uploadingLogo = ref(false);
 
 onMounted(async () => {
   await loadSettings();
@@ -227,46 +203,9 @@ async function loadSettings() {
   }
 }
 
-function triggerFileInput() {
-  fileInput.value.click();
-}
-
-async function handleFileChange(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  // 验证文件大小
-  if (file.size > 2 * 1024 * 1024) {
-    showMessage('图片大小不能超过2MB', 'error');
-    return;
-  }
-
-  // 验证文件类型
-  if (!file.type.startsWith('image/')) {
-    showMessage('请选择有效的图片文件', 'error');
-    return;
-  }
-
-  uploadingLogo.value = true;
-  try {
-    const response = await uploadLogo(file);
-    if (response.data && response.data.url) {
-      formData.value.brand_logo = response.data.url;
-      showMessage('Logo上传成功', 'success');
-    }
-  } catch (error) {
-    console.error('Logo上传失败:', error);
-    showMessage(error.response?.data?.message || 'Logo上传失败', 'error');
-  } finally {
-    uploadingLogo.value = false;
-    // 清空文件选择，允许重新选择相同文件
-    event.target.value = '';
-  }
-}
-
-function clearLogo() {
-  formData.value.brand_logo = '';
-  showMessage('Logo已清除', 'success');
+function handleImageError(event) {
+  event.target.style.display = 'none';
+  showMessage('Logo图片加载失败，请检查URL是否正确', 'error');
 }
 
 async function handleSave() {
@@ -393,52 +332,29 @@ function showMessage(text, type) {
   color: #888;
 }
 
-.logo-upload-area {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.logo-preview {
-  width: 150px;
-  height: 150px;
-  border: 2px dashed #d0d7e2;
+.logo-preview-small {
+  margin-top: 12px;
+  width: 120px;
+  height: 120px;
+  border: 2px solid #d0d7e2;
   border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f9fa;
-  overflow: hidden;
 }
 
-.preview-image {
-  width: 100%;
-  height: 100%;
+.preview-image-small {
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #999;
-}
-
-.preview-placeholder p {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.upload-controls {
-  display: flex;
-  gap: 12px;
-}
-
-.upload-tip {
+.input-tip {
   font-size: 0.85rem;
   color: #666;
-  margin: 0;
+  margin: 8px 0 0 0;
 }
 
 .form-actions {
