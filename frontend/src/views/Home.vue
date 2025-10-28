@@ -257,8 +257,12 @@ async function handleSearch() {
 }
 
 function handleLogoError(event) {
-  event.target.style.display = 'none';
-  event.target.nextElementSibling.style.display = 'flex';
+  if (event.target) {
+    event.target.style.display = 'none';
+    if (event.target.nextElementSibling) {
+      event.target.nextElementSibling.style.display = 'flex';
+    }
+  }
 }
 </script>
 
