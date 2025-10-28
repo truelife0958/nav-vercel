@@ -174,8 +174,45 @@ async function initializeDatabase() {
         logo TEXT
       )
     `, []);
+
+    // 创建 brand_settings 表（品牌设置）
+    await sql.query(`
+      CREATE TABLE IF NOT EXISTS brand_settings (
+        id SERIAL PRIMARY KEY,
+        site_name VARCHAR(100),
+        site_logo TEXT,
+        site_description VARCHAR(500),
+        site_keywords VARCHAR(500),
+        footer_text VARCHAR(500),
+        icp_number VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `, []);
     
     console.log('✅ 数据库表结构创建完成');
+    
+    // 初始化默认品牌设置
+    try {
+      const result = await sql`SELECT COUNT(*) as count FROM brand_settings`;
+      const settings = result.rows || result;
+      const settingsCount = parseInt(
+        settings[0]?.count ||
+        settings[0]?.COUNT ||
+        settings[0]?.['count(*)'] ||
+        0
+      );
+      
+      if (settingsCount === 0) {
+        await sql`
+          INSERT INTO brand_settings (site_name, site_description)
+          VALUES ('我的导航站', '一个简洁优雅的导航网站')
+        `;
+        console.log('✅ 默认品牌设置已创建');
+      }
+    } catch (settingsError) {
+      console.warn('⚠️  创建默认品牌设置失败（可能已存在）:', settingsError.message);
+    }
     
     // 检查是否需要创建默认管理员
     try {

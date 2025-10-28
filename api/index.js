@@ -20,7 +20,8 @@ const {
   cardSchema,
   adSchema,
   friendSchema,
-  changePasswordSchema
+  changePasswordSchema,
+  brandSchema
 } = require('./validators');
 
 const app = express();
@@ -302,48 +303,32 @@ app.get('/api/menus/:id/submenus', async (req, res) => {
 });
 
 // 新增菜单
-app.post('/api/menus', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { name, sort_order } = req.body;
-    const { rows } = await sql`
-      INSERT INTO menus (name, sort_order)
-      VALUES (${name}, ${sort_order || 0})
-      RETURNING id
-    `;
-    
-    res.json({ id: rows[0].id });
-  } catch (error) {
-    console.error('Create menu error:', error);
-    res.status(500).json({ 
-      error: 'Failed to create menu', 
-      details: error.message 
-    });
-  }
-});
+app.post('/api/menus', authMiddleware, validate(menuSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { name, sort_order } = req.body;
+  const { rows } = await sql`
+    INSERT INTO menus (name, sort_order)
+    VALUES (${name}, ${sort_order || 0})
+    RETURNING id
+  `;
+  
+  res.json({ id: rows[0].id });
+}));
 
 // 更新菜单
-app.put('/api/menus/:id', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { name, sort_order } = req.body;
-    const { rowCount } = await sql`
-      UPDATE menus
-      SET name = ${name}, sort_order = ${sort_order || 0}
-      WHERE id = ${req.params.id}
-    `;
-    
-    res.json({ changed: rowCount });
-  } catch (error) {
-    console.error('Update menu error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update menu', 
-      details: error.message 
-    });
-  }
-});
+app.put('/api/menus/:id', authMiddleware, validate(menuSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { name, sort_order } = req.body;
+  const { rowCount } = await sql`
+    UPDATE menus
+    SET name = ${name}, sort_order = ${sort_order || 0}
+    WHERE id = ${req.params.id}
+  `;
+  
+  res.json({ changed: rowCount });
+}));
 
 // 删除菜单
 app.delete('/api/menus/:id', authMiddleware, async (req, res) => {
@@ -365,48 +350,32 @@ app.delete('/api/menus/:id', authMiddleware, async (req, res) => {
 });
 
 // 新增子菜单
-app.post('/api/menus/:id/submenus', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { name, sort_order } = req.body;
-    const { rows } = await sql`
-      INSERT INTO sub_menus (parent_id, name, sort_order)
-      VALUES (${req.params.id}, ${name}, ${sort_order || 0})
-      RETURNING id
-    `;
-    
-    res.json({ id: rows[0].id });
-  } catch (error) {
-    console.error('Create submenu error:', error);
-    res.status(500).json({ 
-      error: 'Failed to create submenu', 
-      details: error.message 
-    });
-  }
-});
+app.post('/api/menus/:id/submenus', authMiddleware, validate(subMenuSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { name, sort_order } = req.body;
+  const { rows } = await sql`
+    INSERT INTO sub_menus (parent_id, name, sort_order)
+    VALUES (${req.params.id}, ${name}, ${sort_order || 0})
+    RETURNING id
+  `;
+  
+  res.json({ id: rows[0].id });
+}));
 
 // 更新子菜单
-app.put('/api/menus/submenus/:id', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { name, sort_order } = req.body;
-    const { rowCount } = await sql`
-      UPDATE sub_menus
-      SET name = ${name}, sort_order = ${sort_order || 0}
-      WHERE id = ${req.params.id}
-    `;
-    
-    res.json({ changed: rowCount });
-  } catch (error) {
-    console.error('Update submenu error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update submenu', 
-      details: error.message 
-    });
-  }
-});
+app.put('/api/menus/submenus/:id', authMiddleware, validate(subMenuSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { name, sort_order } = req.body;
+  const { rowCount } = await sql`
+    UPDATE sub_menus
+    SET name = ${name}, sort_order = ${sort_order || 0}
+    WHERE id = ${req.params.id}
+  `;
+  
+  res.json({ changed: rowCount });
+}));
 
 // 删除子菜单
 app.delete('/api/menus/submenus/:id', authMiddleware, async (req, res) => {
@@ -501,11 +470,22 @@ app.get('/api/cards/:menuId', async (req, res) => {
 });
 
 // 新增卡片
-app.post('/api/cards', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const {
+app.post('/api/cards', authMiddleware, validate(cardSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const {
+    menu_id,
+    sub_menu_id,
+    title,
+    url,
+    logo_url,
+    custom_logo_path,
+    description,
+    sort_order
+  } = req.body;
+
+  const { rows } = await sql`
+    INSERT INTO cards (
       menu_id,
       sub_menu_id,
       title,
@@ -514,49 +494,30 @@ app.post('/api/cards', authMiddleware, async (req, res) => {
       custom_logo_path,
       description,
       sort_order
-    } = req.body;
-
-    const { rows } = await sql`
-      INSERT INTO cards (
-        menu_id,
-        sub_menu_id,
-        title,
-        url,
-        logo_url,
-        custom_logo_path,
-        description,
-        sort_order
-      )
-      VALUES (
-        ${menu_id || null},
-        ${sub_menu_id || null},
-        ${title},
-        ${url},
-        ${logo_url || null},
-        ${custom_logo_path || null},
-        ${description || null},
-        ${sort_order || 0}
-      )
-      RETURNING *
-    `;
-    
-    const newCard = rows[0];
-    
-    if (!newCard.custom_logo_path) {
-      newCard.display_logo = newCard.logo_url || (newCard.url.replace(/\/+$/, '') + '/favicon.ico');
-    } else {
-      newCard.display_logo = '/uploads/' + newCard.custom_logo_path;
-    }
-    
-    res.status(200).json(newCard);
-  } catch (error) {
-    console.error('Create card error:', error);
-    res.status(500).json({ 
-      error: 'Failed to create card', 
-      details: error.message 
-    });
+    )
+    VALUES (
+      ${menu_id || null},
+      ${sub_menu_id || null},
+      ${title},
+      ${url},
+      ${logo_url || null},
+      ${custom_logo_path || null},
+      ${description || null},
+      ${sort_order || 0}
+    )
+    RETURNING *
+  `;
+  
+  const newCard = rows[0];
+  
+  if (!newCard.custom_logo_path) {
+    newCard.display_logo = newCard.logo_url || (newCard.url.replace(/\/+$/, '') + '/favicon.ico');
+  } else {
+    newCard.display_logo = '/uploads/' + newCard.custom_logo_path;
   }
-});
+  
+  res.status(200).json(newCard);
+}));
 
 // 更新卡片（老王的安全版本，艹掉SQL注入！）
 app.put('/api/cards/:id', authMiddleware, async (req, res) => {
@@ -663,50 +624,34 @@ app.get('/api/ads', async (req, res) => {
 });
 
 // 新增广告
-app.post('/api/ads', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { position, img, url } = req.body;
-    
-    const { rows } = await sql`
-      INSERT INTO ads (position, img, url)
-      VALUES (${position}, ${img}, ${url})
-      RETURNING *
-    `;
-    
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Create ad error:', error);
-    res.status(500).json({ 
-      error: 'Failed to create ad', 
-      details: error.message 
-    });
-  }
-});
+app.post('/api/ads', authMiddleware, validate(adSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { position, img, url } = req.body;
+  
+  const { rows } = await sql`
+    INSERT INTO ads (position, img, url)
+    VALUES (${position}, ${img}, ${url})
+    RETURNING *
+  `;
+  
+  res.json(rows[0]);
+}));
 
 // 更新广告
-app.put('/api/ads/:id', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { position, img, url } = req.body;
-    
-    const { rowCount } = await sql`
-      UPDATE ads 
-      SET position = ${position}, img = ${img}, url = ${url}
-      WHERE id = ${req.params.id}
-    `;
-    
-    res.json({ changed: rowCount });
-  } catch (error) {
-    console.error('Update ad error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update ad', 
-      details: error.message 
-    });
-  }
-});
+app.put('/api/ads/:id', authMiddleware, validate(adSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { position, img, url } = req.body;
+  
+  const { rowCount } = await sql`
+    UPDATE ads
+    SET position = ${position}, img = ${img}, url = ${url}
+    WHERE id = ${req.params.id}
+  `;
+  
+  res.json({ changed: rowCount });
+}));
 
 // 删除广告
 app.delete('/api/ads/:id', authMiddleware, async (req, res) => {
@@ -749,50 +694,34 @@ app.get('/api/friends', async (req, res) => {
 });
 
 // 新增友情链接
-app.post('/api/friends', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { title, url, logo } = req.body;
-    
-    const { rows } = await sql`
-      INSERT INTO friends (title, url, logo)
-      VALUES (${title}, ${url}, ${logo || null})
-      RETURNING *
-    `;
-    
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Create friend error:', error);
-    res.status(500).json({ 
-      error: 'Failed to create friend', 
-      details: error.message 
-    });
-  }
-});
+app.post('/api/friends', authMiddleware, validate(friendSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { title, url, logo } = req.body;
+  
+  const { rows } = await sql`
+    INSERT INTO friends (title, url, logo)
+    VALUES (${title}, ${url}, ${logo || null})
+    RETURNING *
+  `;
+  
+  res.json(rows[0]);
+}));
 
 // 更新友情链接
-app.put('/api/friends/:id', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { title, url, logo } = req.body;
-    
-    const { rowCount } = await sql`
-      UPDATE friends 
-      SET title = ${title}, url = ${url}, logo = ${logo || null}
-      WHERE id = ${req.params.id}
-    `;
-    
-    res.json({ changed: rowCount });
-  } catch (error) {
-    console.error('Update friend error:', error);
-    res.status(500).json({ 
-      error: 'Failed to update friend', 
-      details: error.message 
-    });
-  }
-});
+app.put('/api/friends/:id', authMiddleware, validate(friendSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { title, url, logo } = req.body;
+  
+  const { rowCount } = await sql`
+    UPDATE friends
+    SET title = ${title}, url = ${url}, logo = ${logo || null}
+    WHERE id = ${req.params.id}
+  `;
+  
+  res.json({ changed: rowCount });
+}));
 
 // 删除友情链接
 app.delete('/api/friends/:id', authMiddleware, async (req, res) => {
@@ -866,48 +795,37 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
 });
 
 // 修改密码
-app.put('/api/users/password', authMiddleware, async (req, res) => {
-  try {
-    await ensureDbInitialized();
-    
-    const { oldPassword, newPassword } = req.body;
-    
-    if (!oldPassword || !newPassword) {
-      return res.status(400).json({ error: '旧密码和新密码不能为空' });
-    }
-    
-    const { rows: users } = await sql`
-      SELECT * FROM users WHERE id = ${req.user.id}
-    `;
-    
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    const user = users[0];
-    const isValid = await bcrypt.compare(oldPassword, user.password);
-    
-    if (!isValid) {
-      return res.status(401).json({ error: '旧密码错误' });
-    }
-    
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    await sql`
-      UPDATE users 
-      SET password = ${hashedPassword}
-      WHERE id = ${req.user.id}
-    `;
-    
-    res.json({ message: '密码修改成功' });
-  } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ 
-      error: 'Failed to change password', 
-      details: error.message 
-    });
+app.put('/api/users/password', authMiddleware, validate(changePasswordSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { oldPassword, newPassword } = req.body;
+  
+  const { rows: users } = await sql`
+    SELECT * FROM users WHERE id = ${req.user.id}
+  `;
+  
+  if (users.length === 0) {
+    throw createError.notFound('User not found');
   }
-});
+  
+  const user = users[0];
+  const isValid = await bcrypt.compare(oldPassword, user.password);
+  
+  if (!isValid) {
+    throw createError.unauthorized('旧密码错误');
+  }
+  
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+  await sql`
+    UPDATE users
+    SET password = ${hashedPassword}
+    WHERE id = ${req.user.id}
+  `;
+  
+  logger.info(`用户修改密码成功: ${user.username}`);
+  res.json({ message: '密码修改成功' });
+}));
 
 // 获取所有用户
 app.get('/api/users', authMiddleware, async (req, res) => {
@@ -928,6 +846,96 @@ app.get('/api/users', authMiddleware, async (req, res) => {
     });
   }
 });
+
+// ==================== 品牌设置路由 ====================
+
+// 获取品牌设置
+app.get('/api/brand-settings', asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const { rows: settings } = await sql`
+    SELECT * FROM brand_settings
+    ORDER BY id DESC
+    LIMIT 1
+  `;
+  
+  if (settings.length === 0) {
+    // 返回默认设置
+    return res.json({
+      site_name: '我的导航站',
+      site_logo: null,
+      site_description: '一个简洁优雅的导航网站',
+      site_keywords: null,
+      footer_text: null,
+      icp_number: null
+    });
+  }
+  
+  res.json(settings[0]);
+}));
+
+// 更新品牌设置
+app.put('/api/brand-settings', authMiddleware, validate(brandSchema), asyncHandler(async (req, res) => {
+  await ensureDbInitialized();
+  
+  const {
+    site_name,
+    site_logo,
+    site_description,
+    site_keywords,
+    footer_text,
+    icp_number
+  } = req.body;
+  
+  // 检查是否存在设置
+  const { rows: existing } = await sql`
+    SELECT * FROM brand_settings LIMIT 1
+  `;
+  
+  if (existing.length === 0) {
+    // 创建新设置
+    const { rows } = await sql`
+      INSERT INTO brand_settings (
+        site_name,
+        site_logo,
+        site_description,
+        site_keywords,
+        footer_text,
+        icp_number
+      )
+      VALUES (
+        ${site_name || null},
+        ${site_logo || null},
+        ${site_description || null},
+        ${site_keywords || null},
+        ${footer_text || null},
+        ${icp_number || null}
+      )
+      RETURNING *
+    `;
+    
+    logger.info('品牌设置已创建', { user: req.user.username });
+    return res.json(rows[0]);
+  }
+  
+  // 更新现有设置
+  const { rows } = await sql`
+    UPDATE brand_settings
+    SET
+      site_name = ${site_name || null},
+      site_logo = ${site_logo || null},
+      site_description = ${site_description || null},
+      site_keywords = ${site_keywords || null},
+      footer_text = ${footer_text || null},
+      icp_number = ${icp_number || null},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${existing[0].id}
+    RETURNING *
+  `;
+  
+  logger.info('品牌设置已更新', { user: req.user.username });
+  res.json(rows[0]);
+}));
 
 // ==================== 根路径 ====================
 
