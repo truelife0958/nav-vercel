@@ -41,6 +41,7 @@
         <li :class="{active: page==='card'}" @click="page='card'; closeSider()">卡片管理</li>
         <li :class="{active: page==='ad'}" @click="page='ad'; closeSider()">广告管理</li>
         <li :class="{active: page==='friend'}" @click="page='friend'; closeSider()">友链管理</li>
+        <li :class="{active: page==='brand'}" @click="page='brand'; closeSider()">品牌设置</li>
         <li :class="{active: page==='user'}" @click="page='user'; closeSider()">用户管理</li>
       </ul>
     </aside>
@@ -81,6 +82,7 @@
         <CardManage v-if="page==='card'" />
         <AdManage v-if="page==='ad'" />
         <FriendLinkManage v-if="page==='friend'" />
+        <BrandSettings v-if="page==='brand'" />
         <UserManage v-if="page==='user'" />
       </div>
       <footer class="admin-footer">
@@ -97,6 +99,7 @@ import MenuManage from './admin/MenuManage.vue';
 import CardManage from './admin/CardManage.vue';
 import AdManage from './admin/AdManage.vue';
 import FriendLinkManage from './admin/FriendLinkManage.vue';
+import BrandSettings from './admin/BrandSettings.vue';
 import UserManage from './admin/UserManage.vue';
 
 const page = ref('welcome');
@@ -116,6 +119,7 @@ const pageTitle = computed(() => {
     case 'card': return '卡片管理';
     case 'ad': return '广告管理';
     case 'friend': return '友链管理';
+    case 'brand': return '品牌设置';
     case 'user': return '用户管理';
     default: return '';
   }

@@ -94,6 +94,10 @@ export const addCard = (data) => axios.post(`${BASE}/cards`, data, { headers: au
 export const updateCard = (id, data) => axios.put(`${BASE}/cards/${id}`, data, { headers: authHeaders() });
 export const deleteCard = (id) => axios.delete(`${BASE}/cards/${id}`, { headers: authHeaders() });
 
+// 图标服务API
+export const getSmartIcon = (url) => axios.get(`${BASE}/icons/smart`, { params: { url } });
+export const getBatchIcons = (urls) => axios.post(`${BASE}/icons/batch`, { urls }, { headers: authHeaders() });
+
 export const uploadLogo = (file) => {
   const formData = new FormData();
   formData.append('logo', file);
@@ -117,6 +121,10 @@ export const getUserProfile = () => axios.get(`${BASE}/users/me`, { headers: aut
 export const getUserProfileAlt = () => axios.get(`${BASE}/users/profile`, { headers: authHeaders() });
 export const changePassword = (oldPassword, newPassword) => axios.put(`${BASE}/users/password`, { oldPassword, newPassword }, { headers: authHeaders() });
 export const getUsers = () => axios.get(`${BASE}/users`, { headers: authHeaders() });
+
+// 品牌设置API
+export const getBrandSettings = () => axios.get(`${BASE}/brand-settings`);
+export const updateBrandSettings = (data) => axios.put(`${BASE}/brand-settings`, data, { headers: authHeaders() });
 
 // AI辅助API
 export const enhanceWebsites = (websites) => axios.post(`${BASE}/ai/enhance-websites`, { websites }, { headers: authHeaders() });

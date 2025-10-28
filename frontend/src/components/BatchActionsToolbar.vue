@@ -28,6 +28,12 @@
       </div>
       <button class="btn btn-batch" @click="$emit('batch-copy')">复制 ({{ selectedCards.length }})</button>
       <button class="btn btn-batch" @click="$emit('batch-paste')" :disabled="copiedCards.length === 0">粘贴 ({{ copiedCards.length }})</button>
+      <button class="btn btn-update-icons" @click="$emit('batch-update-icons')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        更新图标 ({{ selectedCards.length }})
+      </button>
       <button class="btn btn-danger" @click="$emit('batch-delete')">删除 ({{ selectedCards.length }})</button>
     </div>
   </div>
@@ -52,6 +58,7 @@ defineEmits([
   'execute-batch-move',
   'batch-copy',
   'batch-paste',
+  'batch-update-icons',
   'batch-delete'
 ]);
 </script>
@@ -86,7 +93,29 @@ defineEmits([
   border: none;
   cursor: pointer;
 }
-.btn-batch { background: #6366f1; color: white; }
+.btn-batch {
+  background: #6366f1;
+  color: white;
+}
+.btn-update-icons {
+  background: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-update-icons:hover {
+  background: #059669;
+}
+.btn-update-icons:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
 .btn-danger { background: #ef4444; color: white; }
 .input {
   padding: 8px 10px;

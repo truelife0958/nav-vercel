@@ -76,7 +76,12 @@
           </svg>
           后台管理
         </router-link>
-        <p class="copyright">Copyright © 2025 nav-pro | Powered by marry</p>
+        <p class="copyright">{{ brandSettings.copyright || 'Copyright © 2025 nav-pro | Powered by marry' }}</p>
+      </div>
+      <div v-if="brandSettings.icp_number || brandSettings.police_number || brandSettings.contact_email" class="footer-extra">
+        <p v-if="brandSettings.icp_number" class="footer-text">{{ brandSettings.icp_number }}</p>
+        <p v-if="brandSettings.police_number" class="footer-text">{{ brandSettings.police_number }}</p>
+        <p v-if="brandSettings.contact_email" class="footer-text">联系邮箱：{{ brandSettings.contact_email }}</p>
       </div>
     </footer>
 
@@ -124,7 +129,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { getMenus, getCards, getAds, getFriends } from '../api';
+import { getMenus, getCards, getAds, getFriends, getBrandSettings } from '../api';
 import MenuBar from '../components/MenuBar.vue';
 import SubMenuBar from '../components/SubMenuBar.vue';
 import CardGrid from '../components/CardGrid.vue';
@@ -138,6 +143,15 @@ const leftAds = ref([]);
 const rightAds = ref([]);
 const showFriendLinks = ref(false);
 const friendLinks = ref([]);
+const brandSettings = ref({
+  brand_name: '',
+  brand_logo: '',
+  brand_slogan: '',
+  copyright: '',
+  icp_number: '',
+  police_number: '',
+  contact_email: ''
+});
 
 // 聚合搜索配置
 const searchEngines = [
@@ -204,6 +218,20 @@ onMounted(async () => {
   
   const friendRes = await getFriends();
   friendLinks.value = friendRes.data;
+  
+  // 加载品牌设置
+  try {
+    const brandRes = await getBrandSettings();
+    if (brandRes.data) {
+      brandSettings.value = brandRes.data;
+      // 动态更新页面标题
+      if (brandSettings.value.brand_name) {
+        document.title = brandSettings.value.brand_name;
+      }
+    }
+  } catch (error) {
+    console.error('加载品牌设置失败:', error);
+  }
 });
 
 async function selectMenu(menu, parentMenu = null) {
@@ -666,6 +694,21 @@ function handleLogoError(event) {
 .copyright {
   color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.footer-extra {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
   margin: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }

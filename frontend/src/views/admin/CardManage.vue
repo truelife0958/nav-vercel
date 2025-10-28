@@ -27,6 +27,7 @@
       @execute-batch-move="executeBatchMove"
       @batch-copy="batchCopyCards"
       @batch-paste="batchPasteCards"
+      @batch-update-icons="batchUpdateIcons"
       @batch-delete="batchDeleteCards"
     />
 
@@ -70,7 +71,8 @@ import {
   getCards,
   addCard as apiAddCard,
   updateCard as apiUpdateCard,
-  deleteCard as apiDeleteCard
+  deleteCard as apiDeleteCard,
+  getBatchIcons
 } from '../../api';
 import CardHeader from '../../components/CardHeader.vue';
 import BatchActionsToolbar from '../../components/BatchActionsToolbar.vue';
@@ -289,6 +291,57 @@ async function batchPasteCards() {
   } catch (error) {
     console.error('Batch paste failed:', error);
     alert('批量粘贴失败: ' + error.message);
+  }
+}
+
+async function batchUpdateIcons() {
+  if (selectedCards.value.length === 0) return;
+  
+  const selectedCardsList = cards.value.filter(card => selectedCards.value.includes(card.id));
+  const urls = selectedCardsList.map(card => card.url);
+  
+  if (!confirm(`确定要为选中的 ${selectedCards.value.length} 张卡片批量更新图标吗？\n这将使用智能图标服务自动获取最佳图标。`)) {
+    return;
+  }
+  
+  try {
+    // 调用批量获取图标API
+    const response = await getBatchIcons(urls);
+    const iconResults = response.data;
+    
+    let updatedCount = 0;
+    let failedCount = 0;
+    
+    // 更新每张卡片的图标
+    for (const card of selectedCardsList) {
+      const iconData = iconResults.find(item => item.url === card.url);
+      if (iconData && iconData.iconUrl) {
+        try {
+          await apiUpdateCard(card.id, {
+            ...card,
+            logo_url: iconData.iconUrl
+          });
+          updatedCount++;
+        } catch (error) {
+          console.error(`Failed to update icon for card ${card.id}:`, error);
+          failedCount++;
+        }
+      } else {
+        failedCount++;
+      }
+    }
+    
+    selectedCards.value = [];
+    loadCards();
+    
+    if (failedCount > 0) {
+      alert(`图标更新完成！\n成功: ${updatedCount} 张\n失败: ${failedCount} 张`);
+    } else {
+      alert(`成功更新 ${updatedCount} 张卡片的图标`);
+    }
+  } catch (error) {
+    console.error('Batch update icons failed:', error);
+    alert('批量更新图标失败: ' + (error.response?.data?.message || error.message));
   }
 }
 
