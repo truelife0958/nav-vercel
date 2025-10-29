@@ -145,44 +145,75 @@ onBeforeUnmount(() => {
 }
 
 .sub-menu-btn {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
   font-weight: 500;
-  padding: 0.8rem 2rem;
+  padding: 8px 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
   white-space: nowrap;
   flex-shrink: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   position: relative;
   overflow: hidden;
+  margin: 0 4px;
 }
 
 .sub-menu-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(57, 157, 255, 0.15) 0%,
+    rgba(102, 126, 234, 0.15) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sub-menu-btn::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
   width: 0;
   height: 2px;
-  background: #399dff;
-  transition: all 0.3s ease;
+  background: linear-gradient(90deg, #399dff, #667eea);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-50%);
+  border-radius: 2px 2px 0 0;
 }
 
 .sub-menu-btn:hover {
-  color: #399dff;
-  transform: translateY(-1px);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sub-menu-btn:hover::before {
+  opacity: 1;
 }
 
 .sub-menu-btn.active {
-  color: #399dff;
+  color: #fff;
+  background: rgba(57, 157, 255, 0.18);
+  border-color: rgba(57, 157, 255, 0.35);
+  box-shadow: 0 2px 6px rgba(57, 157, 255, 0.25);
 }
 
 .sub-menu-btn.active::before {
+  opacity: 1;
+}
+
+.sub-menu-btn.active::after {
   width: 60%;
 }
 
@@ -294,8 +325,9 @@ onBeforeUnmount(() => {
   }
 
   .sub-menu-btn {
-    font-size: 14px;
-    padding: 0.4rem 0.8rem;
+    font-size: 13px;
+    padding: 7px 16px;
+    margin: 0 3px;
   }
 
   .scroll-btn {
@@ -338,7 +370,8 @@ onBeforeUnmount(() => {
 
   .sub-menu-btn {
     font-size: 12px;
-    padding: 0.3rem 0.6rem;
+    padding: 6px 14px;
+    margin: 0 2px;
   }
 
   .scroll-btn {

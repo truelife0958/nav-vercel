@@ -150,14 +150,15 @@ function truncate(str) {
 
 <style scoped>
 .container {
-  max-width: 55rem;
+  max-width: 58rem;
   margin: 0 auto;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 15px;
+  gap: 16px;
   opacity: 1;
   transition: opacity 0.2s ease;
+  padding: 0 16px;
 }
 @media (max-width: 1200px) {
   .container {
@@ -166,18 +167,26 @@ function truncate(str) {
 }
 @media (max-width: 768px) {
   .container {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     max-width: 95%;
+    padding: 0 12px;
   }
 
   .link-item {
-    min-height: 80px;
-    height: 80px;
+    min-height: 85px;
+    height: 85px;
+  }
+
+  .link-icon {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 6px;
   }
 
   .link-text {
-    font-size: 13px;
+    font-size: 12px;
+    line-height: 1.2;
   }
 }
 
@@ -187,51 +196,87 @@ function truncate(str) {
     gap: 10px;
     max-width: 98%;
     margin: 0 auto;
-    padding: 0 0.5rem;
+    padding: 0 8px;
     box-sizing: border-box;
   }
 
   .link-item {
-    min-height: 75px;
-    height: 75px;
-    border-radius: 12px;
+    min-height: 80px;
+    height: 80px;
+    border-radius: 14px;
+  }
+
+  .link-item a {
+    padding: 8px 4px;
   }
 
   .link-icon {
-    width: 22px;
-    height: 22px;
-    margin: 3px auto;
+    width: 24px;
+    height: 24px;
+    margin-bottom: 5px;
+    padding: 3px;
   }
 
   .link-text {
-    font-size: 12px;
-    padding-right: 3px;
-    padding-left: 3px;
-    line-height: 1.1;
-    min-height: 1.2em;
+    font-size: 11px;
+    padding: 0 4px;
+    line-height: 1.2;
+    min-height: 1.5em;
   }
 }
 .link-item {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
   padding: 0;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1),
+              0 1px 2px rgba(0, 0, 0, 0.06);
   text-align: center;
-  min-height: 85px;
-  height: 85px;
+  min-height: 90px;
+  height: 90px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
+
+.link-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
 .link-item:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15),
+              0 4px 8px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.link-item:hover::before {
+  opacity: 1;
+}
+
+.link-item:active {
+  transform: translateY(-2px) scale(0.98);
 }
 .link-item a {
-  /* margin-top: 8px; */
   text-decoration: none;
   color: #ffffff;
   font-weight: 500;
@@ -241,19 +286,39 @@ function truncate(str) {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 0;
+  padding: 12px 8px;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
 }
+
+.link-item:hover a {
+  transform: scale(1.05);
+}
+
 .link-icon {
-  width: 25px;
-  height: 25px;
-  margin: 4px auto;
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 8px;
   object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.link-item:hover .link-icon {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.1) rotate(5deg);
+}
+
 .link-text {
-  padding-right: 4px;
-  padding-left: 4px;
-  font-size: 14px;
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 500;
   text-align: center;
   word-break: break-all;
   max-width: 100%;
@@ -263,8 +328,10 @@ function truncate(str) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
-  line-height: 1;
-  min-height: 1.5em;
+  line-height: 1.3;
+  min-height: 1.8em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
 }
 
 /* 动画样式 */
