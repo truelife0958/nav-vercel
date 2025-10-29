@@ -179,12 +179,14 @@ async function initializeDatabase() {
     await sql.query(`
       CREATE TABLE IF NOT EXISTS brand_settings (
         id SERIAL PRIMARY KEY,
-        site_name VARCHAR(100),
-        site_logo TEXT,
-        site_description VARCHAR(500),
-        site_keywords VARCHAR(500),
-        footer_text VARCHAR(500),
+        brand_name VARCHAR(100),
+        brand_logo TEXT,
+        brand_slogan VARCHAR(200),
         icp_number VARCHAR(100),
+        police_number VARCHAR(100),
+        copyright VARCHAR(200),
+        contact_email VARCHAR(100),
+        about TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -205,8 +207,8 @@ async function initializeDatabase() {
       
       if (settingsCount === 0) {
         await sql`
-          INSERT INTO brand_settings (site_name, site_description)
-          VALUES ('我的导航站', '一个简洁优雅的导航网站')
+          INSERT INTO brand_settings (brand_name, brand_slogan, copyright)
+          VALUES ('导航Pro', '您的专业导航助手', 'Copyright © 2025 nav-pro | Powered by marry')
         `;
         console.log('✅ 默认品牌设置已创建');
       }

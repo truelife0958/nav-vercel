@@ -925,12 +925,14 @@ app.get('/api/brand-settings', asyncHandler(async (req, res) => {
   if (settings.length === 0) {
     // 返回默认设置
     return res.json({
-      site_name: '我的导航站',
-      site_logo: null,
-      site_description: '一个简洁优雅的导航网站',
-      site_keywords: null,
-      footer_text: null,
-      icp_number: null
+      brand_name: '导航Pro',
+      brand_logo: null,
+      brand_slogan: '您的专业导航助手',
+      icp_number: null,
+      police_number: null,
+      copyright: 'Copyright © 2025 nav-pro | Powered by marry',
+      contact_email: null,
+      about: null
     });
   }
   
@@ -942,12 +944,14 @@ app.put('/api/brand-settings', authMiddleware, validate(brandSchema), asyncHandl
   await ensureDbInitialized();
   
   const {
-    site_name,
-    site_logo,
-    site_description,
-    site_keywords,
-    footer_text,
-    icp_number
+    brand_name,
+    brand_logo,
+    brand_slogan,
+    icp_number,
+    police_number,
+    copyright,
+    contact_email,
+    about
   } = req.body;
   
   // 检查是否存在设置
@@ -959,20 +963,24 @@ app.put('/api/brand-settings', authMiddleware, validate(brandSchema), asyncHandl
     // 创建新设置
     const { rows } = await sql`
       INSERT INTO brand_settings (
-        site_name,
-        site_logo,
-        site_description,
-        site_keywords,
-        footer_text,
-        icp_number
+        brand_name,
+        brand_logo,
+        brand_slogan,
+        icp_number,
+        police_number,
+        copyright,
+        contact_email,
+        about
       )
       VALUES (
-        ${site_name || null},
-        ${site_logo || null},
-        ${site_description || null},
-        ${site_keywords || null},
-        ${footer_text || null},
-        ${icp_number || null}
+        ${brand_name || null},
+        ${brand_logo || null},
+        ${brand_slogan || null},
+        ${icp_number || null},
+        ${police_number || null},
+        ${copyright || null},
+        ${contact_email || null},
+        ${about || null}
       )
       RETURNING *
     `;
@@ -985,12 +993,14 @@ app.put('/api/brand-settings', authMiddleware, validate(brandSchema), asyncHandl
   const { rows } = await sql`
     UPDATE brand_settings
     SET
-      site_name = ${site_name || null},
-      site_logo = ${site_logo || null},
-      site_description = ${site_description || null},
-      site_keywords = ${site_keywords || null},
-      footer_text = ${footer_text || null},
+      brand_name = ${brand_name || null},
+      brand_logo = ${brand_logo || null},
+      brand_slogan = ${brand_slogan || null},
       icp_number = ${icp_number || null},
+      police_number = ${police_number || null},
+      copyright = ${copyright || null},
+      contact_email = ${contact_email || null},
+      about = ${about || null},
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${existing[0].id}
     RETURNING *

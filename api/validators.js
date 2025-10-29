@@ -279,12 +279,14 @@ const friendSchema = {
 
 // 品牌设置验证
 const brandSchema = {
-  site_name: ['optional', 'string', rules.min(1), rules.max(100), 'noXSS', 'textOnly'],
-  site_logo: ['optional', 'string', 'noXSS'],
-  site_description: ['optional', 'string', rules.max(500), 'noXSS', 'textOnly'],
-  site_keywords: ['optional', 'string', rules.max(500), 'noXSS', 'textOnly'],
-  footer_text: ['optional', 'string', rules.max(500), 'noXSS', 'textOnly'],
-  icp_number: ['optional', 'string', rules.max(100), 'noXSS']
+  brand_name: ['optional', 'string', rules.min(1), rules.max(100), 'noXSS', 'textOnly'],
+  brand_logo: ['optional', 'string', 'noXSS'],
+  brand_slogan: ['optional', 'string', rules.max(200), 'noXSS', 'textOnly'],
+  icp_number: ['optional', 'string', rules.max(100), 'noXSS'],
+  police_number: ['optional', 'string', rules.max(100), 'noXSS'],
+  copyright: ['optional', 'string', rules.max(200), 'noXSS', 'textOnly'],
+  contact_email: ['optional', 'string', 'email', 'noXSS'],
+  about: ['optional', 'string', rules.max(1000), 'noXSS', 'textOnly']
 };
 
 // 批量操作验证schema
