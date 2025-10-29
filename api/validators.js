@@ -247,7 +247,8 @@ const menuSchema = {
 // 子菜单验证（增强安全性）
 const subMenuSchema = {
   name: ['required', 'string', rules.min(1), rules.max(255), 'noXSS', 'noSQLInjection', 'textOnly'],
-  sort_order: ['optional', 'integer', rules.min(0)]
+  sort_order: ['optional', 'integer', rules.min(0)],
+  menu_id: ['optional', 'integer', rules.min(1)] // 支持批量移动时更新父菜单ID
 };
 
 // 登录验证（增强安全性）
