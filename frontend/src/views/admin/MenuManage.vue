@@ -63,9 +63,33 @@
                 添加子菜单
               </button>
             </div>
+
+            <!-- 批量操作工具栏 -->
+            <SubMenuBatchToolbar
+              v-if="menu.showSubMenu && currentMenuId === menu.id"
+              :subMenus="currentSubMenus"
+              :selectedSubMenus="selectedSubMenus"
+              :isAllSelected="isAllSelected"
+              :menus="menus.filter(m => m.id !== menu.id)"
+              v-model:batchMoveMenuId="batchMoveMenuId"
+              @toggle-select-all="toggleSelectAll"
+              @execute-batch-move="executeBatchMove"
+              @batch-delete="batchDeleteSubMenus"
+            />
             
             <div class="sub-menu-list" v-if="menu.subMenus && menu.subMenus.length > 0">
               <div v-for="subMenu in menu.subMenus" :key="subMenu.id" class="sub-menu-item">
+                <!-- 复选框 -->
+                <label class="sub-menu-checkbox" v-if="currentMenuId === menu.id">
+                  <input
+                    type="checkbox"
+                    :checked="selectedSubMenus.includes(subMenu.id)"
+                    @change="toggleSubMenuSelection(subMenu.id)"
+                    class="checkbox-input"
+                  />
+                  <span class="checkmark"></span>
+                </label>
+                
                 <div class="sub-menu-info">
                   <div class="sub-menu-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -103,19 +127,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { 
-  getMenus, 
-  addMenu as apiAddMenu, 
-  updateMenu as apiUpdateMenu, 
+import { ref, onMounted, computed } from 'vue';
+import {
+  getMenus,
+  addMenu as apiAddMenu,
+  updateMenu as apiUpdateMenu,
   deleteMenu as apiDeleteMenu,
   addSubMenu as apiAddSubMenu,
   updateSubMenu as apiUpdateSubMenu,
   deleteSubMenu as apiDeleteSubMenu
 } from '../../api';
+import SubMenuBatchToolbar from '../../components/SubMenuBatchToolbar.vue';
 
 const menus = ref([]);
 const newMenuName = ref('');
+
+// 批量操作状态
+const selectedSubMenus = ref([]);
+const batchMoveMenuId = ref('');
+const currentMenuId = ref(null); // 当前展开的菜单ID
+
+// 计算属性
+const currentSubMenus = computed(() => {
+  if (!currentMenuId.value) return [];
+  const menu = menus.value.find(m => m.id === currentMenuId.value);
+  return menu?.subMenus || [];
+});
+
+const isAllSelected = computed(() => {
+  return currentSubMenus.value.length > 0 &&
+         selectedSubMenus.value.length === currentSubMenus.value.length;
+});
 
 onMounted(loadMenus);
 
@@ -176,6 +218,91 @@ function toggleSubMenu(menuId) {
   const menu = menus.value.find(m => m.id === menuId);
   if (menu) {
     menu.showSubMenu = !menu.showSubMenu;
+    // 切换菜单时更新当前菜单ID并清空选择
+    if (menu.showSubMenu) {
+      currentMenuId.value = menuId;
+    } else {
+      currentMenuId.value = null;
+      selectedSubMenus.value = [];
+    }
+  }
+}
+
+// 批量操作函数
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedSubMenus.value = [];
+  } else {
+    selectedSubMenus.value = currentSubMenus.value.map(sm => sm.id);
+  }
+}
+
+function toggleSubMenuSelection(subMenuId) {
+  const index = selectedSubMenus.value.indexOf(subMenuId);
+  if (index > -1) {
+    selectedSubMenus.value.splice(index, 1);
+  } else {
+    selectedSubMenus.value.push(subMenuId);
+  }
+}
+
+async function executeBatchMove() {
+  if (!batchMoveMenuId.value || selectedSubMenus.value.length === 0) return;
+
+  const targetMenuId = parseInt(batchMoveMenuId.value, 10);
+  
+  if (targetMenuId === currentMenuId.value) {
+    alert('目标主菜单不能与当前主菜单相同');
+    return;
+  }
+
+  if (!confirm(`确定要将选中的 ${selectedSubMenus.value.length} 个子菜单移动到目标主菜单吗？`)) {
+    return;
+  }
+
+  try {
+    // 批量移动子菜单
+    for (const subMenuId of selectedSubMenus.value) {
+      const subMenu = currentSubMenus.value.find(sm => sm.id === subMenuId);
+      if (subMenu) {
+        await apiUpdateSubMenu(subMenuId, {
+          name: subMenu.name,
+          sort_order: subMenu.sort_order,
+          menu_id: targetMenuId
+        });
+      }
+    }
+    
+    const movedCount = selectedSubMenus.value.length;
+    selectedSubMenus.value = [];
+    batchMoveMenuId.value = '';
+    loadMenus();
+    alert(`成功移动 ${movedCount} 个子菜单`);
+  } catch (error) {
+    console.error('Batch move failed:', error);
+    alert('批量移动失败: ' + (error.response?.data?.message || error.message));
+  }
+}
+
+async function batchDeleteSubMenus() {
+  if (selectedSubMenus.value.length === 0) return;
+  
+  if (!confirm(`确定要删除选中的 ${selectedSubMenus.value.length} 个子菜单吗？删除后将同时删除其下的所有卡片。`)) {
+    return;
+  }
+
+  try {
+    for (const subMenuId of selectedSubMenus.value) {
+      await apiDeleteSubMenu(subMenuId);
+    }
+    
+    const deletedCount = selectedSubMenus.value.length;
+    selectedSubMenus.value = [];
+    loadMenus();
+    alert(`成功删除 ${deletedCount} 个子菜单`);
+  } catch (error) {
+    console.error('Batch delete failed:', error);
+    alert('批量删除失败: ' + (error.response?.data?.message || error.message));
   }
 }
 </script>
@@ -385,6 +512,7 @@ function toggleSubMenu(menuId) {
   border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
   position: relative;
+  gap: 12px;
 }
 
 .sub-menu-item::before {
@@ -452,6 +580,61 @@ function toggleSubMenu(menuId) {
 .sub-menu-actions {
   display: flex;
   gap: 6px;
+}
+
+/* 复选框样式 */
+.sub-menu-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.sub-menu-checkbox .checkmark {
+  height: 20px;
+  width: 20px;
+  background-color: white;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-menu-checkbox:hover .checkmark {
+  border-color: #3b82f6;
+}
+
+.checkbox-input:checked ~ .checkmark {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.sub-menu-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-input:checked ~ .checkmark:after {
+  display: block;
 }
 
 .empty-sub-menu {
