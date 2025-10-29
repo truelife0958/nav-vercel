@@ -367,14 +367,24 @@ app.post('/api/menus/:id/submenus', authMiddleware, validate(subMenuSchema), asy
 app.put('/api/menus/submenus/:id', authMiddleware, validate(subMenuSchema), asyncHandler(async (req, res) => {
   await ensureDbInitialized();
   
-  const { name, sort_order } = req.body;
-  const { rowCount } = await sql`
-    UPDATE sub_menus
-    SET name = ${name}, sort_order = ${sort_order || 0}
-    WHERE id = ${req.params.id}
-  `;
+  const { name, sort_order, menu_id } = req.body;
   
-  res.json({ changed: rowCount });
+  // 如果提供了menu_id，则同时更新parent_id
+  if (menu_id !== undefined) {
+    const { rowCount } = await sql`
+      UPDATE sub_menus
+      SET name = ${name}, sort_order = ${sort_order || 0}, parent_id = ${menu_id}
+      WHERE id = ${req.params.id}
+    `;
+    res.json({ changed: rowCount });
+  } else {
+    const { rowCount } = await sql`
+      UPDATE sub_menus
+      SET name = ${name}, sort_order = ${sort_order || 0}
+      WHERE id = ${req.params.id}
+    `;
+    res.json({ changed: rowCount });
+  }
 }));
 
 // 删除子菜单
