@@ -217,10 +217,21 @@ async function deleteSubMenu(id) {
 function toggleSubMenu(menuId) {
   const menu = menus.value.find(m => m.id === menuId);
   if (menu) {
-    menu.showSubMenu = !menu.showSubMenu;
+    const willExpand = !menu.showSubMenu;
+    
+    // 关闭所有其他菜单的展开状态
+    menus.value.forEach(m => {
+      if (m.id !== menuId) {
+        m.showSubMenu = false;
+      }
+    });
+    
+    menu.showSubMenu = willExpand;
+    
     // 切换菜单时更新当前菜单ID并清空选择
-    if (menu.showSubMenu) {
+    if (willExpand) {
       currentMenuId.value = menuId;
+      selectedSubMenus.value = [];
     } else {
       currentMenuId.value = null;
       selectedSubMenus.value = [];
@@ -246,8 +257,16 @@ function toggleSubMenuSelection(subMenuId) {
   }
 }
 
+// 批量操作loading状态
+const isBatchOperating = ref(false);
+
 async function executeBatchMove() {
   if (!batchMoveMenuId.value || selectedSubMenus.value.length === 0) return;
+  
+  // 防止重复点击
+  if (isBatchOperating.value) {
+    return;
+  }
 
   const targetMenuId = parseInt(batchMoveMenuId.value, 10);
   
@@ -255,54 +274,127 @@ async function executeBatchMove() {
     alert('目标主菜单不能与当前主菜单相同');
     return;
   }
-
-  if (!confirm(`确定要将选中的 ${selectedSubMenus.value.length} 个子菜单移动到目标主菜单吗？`)) {
+  
+  // 批量操作数量限制（防止恶意操作）
+  if (selectedSubMenus.value.length > 50) {
+    alert('一次最多只能移动50个子菜单');
     return;
   }
+
+  if (!confirm(`确定要将选中的 ${selectedSubMenus.value.length} 个子菜单移动到目标主菜单吗？\n\n注意：子菜单下的所有卡片也将一起移动。`)) {
+    return;
+  }
+
+  isBatchOperating.value = true;
+  const successIds = [];
+  const failedItems = [];
 
   try {
     // 批量移动子菜单
     for (const subMenuId of selectedSubMenus.value) {
-      const subMenu = currentSubMenus.value.find(sm => sm.id === subMenuId);
-      if (subMenu) {
-        await apiUpdateSubMenu(subMenuId, {
-          name: subMenu.name,
-          sort_order: subMenu.sort_order,
-          menu_id: targetMenuId
+      try {
+        const subMenu = currentSubMenus.value.find(sm => sm.id === subMenuId);
+        if (subMenu) {
+          await apiUpdateSubMenu(subMenuId, {
+            name: subMenu.name,
+            sort_order: subMenu.sort_order,
+            menu_id: targetMenuId
+          });
+          successIds.push(subMenuId);
+        }
+      } catch (error) {
+        const subMenu = currentSubMenus.value.find(sm => sm.id === subMenuId);
+        failedItems.push({
+          id: subMenuId,
+          name: subMenu?.name || `ID:${subMenuId}`,
+          error: error.response?.data?.message || error.message
         });
       }
     }
     
-    const movedCount = selectedSubMenus.value.length;
     selectedSubMenus.value = [];
     batchMoveMenuId.value = '';
-    loadMenus();
-    alert(`成功移动 ${movedCount} 个子菜单`);
+    await loadMenus();
+    
+    // 显示详细结果
+    if (failedItems.length === 0) {
+      alert(`✅ 成功移动 ${successIds.length} 个子菜单及其下的所有卡片`);
+    } else {
+      let message = `部分移动完成：\n`;
+      message += `✅ 成功: ${successIds.length} 个\n`;
+      message += `❌ 失败: ${failedItems.length} 个\n\n`;
+      message += `失败项:\n`;
+      failedItems.forEach(item => {
+        message += `- ${item.name}: ${item.error}\n`;
+      });
+      alert(message);
+    }
   } catch (error) {
     console.error('Batch move failed:', error);
-    alert('批量移动失败: ' + (error.response?.data?.message || error.message));
+    alert('批量移动过程中发生错误: ' + error.message);
+  } finally {
+    isBatchOperating.value = false;
   }
 }
 
 async function batchDeleteSubMenus() {
   if (selectedSubMenus.value.length === 0) return;
   
-  if (!confirm(`确定要删除选中的 ${selectedSubMenus.value.length} 个子菜单吗？删除后将同时删除其下的所有卡片。`)) {
+  // 防止重复点击
+  if (isBatchOperating.value) {
+    return;
+  }
+  
+  // 批量操作数量限制
+  if (selectedSubMenus.value.length > 50) {
+    alert('一次最多只能删除50个子菜单');
+    return;
+  }
+  
+  if (!confirm(`⚠️ 危险操作警告！\n\n确定要删除选中的 ${selectedSubMenus.value.length} 个子菜单吗？\n\n删除后将同时删除其下的所有卡片，此操作不可恢复！`)) {
     return;
   }
 
+  isBatchOperating.value = true;
+  const successIds = [];
+  const failedItems = [];
+
   try {
     for (const subMenuId of selectedSubMenus.value) {
-      await apiDeleteSubMenu(subMenuId);
+      try {
+        await apiDeleteSubMenu(subMenuId);
+        successIds.push(subMenuId);
+      } catch (error) {
+        const subMenu = currentSubMenus.value.find(sm => sm.id === subMenuId);
+        failedItems.push({
+          id: subMenuId,
+          name: subMenu?.name || `ID:${subMenuId}`,
+          error: error.response?.data?.message || error.message
+        });
+      }
     }
     
-    const deletedCount = selectedSubMenus.value.length;
     selectedSubMenus.value = [];
-    loadMenus();
-    alert(`成功删除 ${deletedCount} 个子菜单`);
+    await loadMenus();
+    
+    // 显示详细结果
+    if (failedItems.length === 0) {
+      alert(`✅ 成功删除 ${successIds.length} 个子菜单及其下的所有卡片`);
+    } else {
+      let message = `部分删除完成：\n`;
+      message += `✅ 成功: ${successIds.length} 个\n`;
+      message += `❌ 失败: ${failedItems.length} 个\n\n`;
+      message += `失败项:\n`;
+      failedItems.forEach(item => {
+        message += `- ${item.name}: ${item.error}\n`;
+      });
+      alert(message);
+    }
   } catch (error) {
     console.error('Batch delete failed:', error);
-    alert('批量删除失败: ' + (error.response?.data?.message || error.message));
+    alert('批量删除过程中发生错误: ' + error.message);
+  } finally {
+    isBatchOperating.value = false;
   }
 }
 </script>
@@ -721,19 +813,24 @@ async function batchDeleteSubMenus() {
 
 .input {
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  border-radius: 10px;
   font-size: 1rem;
   background: white;
   color: #1e293b;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 200px;
 }
 
 .input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.input:hover {
+  border-color: rgba(102, 126, 234, 0.4);
 }
 
 .input::placeholder {

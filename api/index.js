@@ -363,36 +363,79 @@ app.post('/api/menus/:id/submenus', authMiddleware, validate(subMenuSchema), asy
   res.json({ id: rows[0].id });
 }));
 
-// 更新子菜单
+// 更新子菜单（增强版：事务安全 + 验证）
 app.put('/api/menus/submenus/:id', authMiddleware, validate(subMenuSchema), asyncHandler(async (req, res) => {
   await ensureDbInitialized();
   
   const { name, sort_order, menu_id } = req.body;
   const subMenuId = req.params.id;
   
-  // 如果提供了menu_id，则同时更新parent_id，并且移动该子菜单下的所有卡片
+  // 验证子菜单是否存在
+  const { rows: existing } = await sql`
+    SELECT * FROM sub_menus WHERE id = ${subMenuId}
+  `;
+  
+  if (existing.length === 0) {
+    throw createError.notFound('子菜单不存在');
+  }
+  
+  // 如果提供了menu_id，验证目标菜单是否存在
   if (menu_id !== undefined) {
-    // 更新子菜单的parent_id
-    const { rowCount } = await sql`
-      UPDATE sub_menus
-      SET name = ${name}, sort_order = ${sort_order || 0}, parent_id = ${menu_id}
-      WHERE id = ${subMenuId}
+    const { rows: targetMenu } = await sql`
+      SELECT * FROM menus WHERE id = ${menu_id}
     `;
     
-    // 同步更新该子菜单下所有卡片的menu_id
-    await sql`
-      UPDATE cards
-      SET menu_id = ${menu_id}
-      WHERE sub_menu_id = ${subMenuId}
-    `;
+    if (targetMenu.length === 0) {
+      throw createError.badRequest('目标主菜单不存在');
+    }
     
-    res.json({ changed: rowCount });
+    // 使用事务确保数据一致性
+    // Neon的@neondatabase/serverless支持事务
+    try {
+      await sql.begin(async (sql) => {
+        // 1. 更新子菜单的parent_id
+        await sql`
+          UPDATE sub_menus
+          SET name = ${name}, sort_order = ${sort_order || 0}, parent_id = ${menu_id}
+          WHERE id = ${subMenuId}
+        `;
+        
+        // 2. 同步更新该子菜单下所有卡片的menu_id
+        await sql`
+          UPDATE cards
+          SET menu_id = ${menu_id}
+          WHERE sub_menu_id = ${subMenuId}
+        `;
+      });
+      
+      logger.info(`子菜单移动成功: ${subMenuId} -> 菜单 ${menu_id}`, {
+        user: req.user.username,
+        subMenuName: name
+      });
+      
+      res.json({
+        changed: 1,
+        message: '子菜单及其下的卡片已成功移动'
+      });
+    } catch (error) {
+      logger.error(`子菜单移动失败: ${error.message}`, {
+        subMenuId,
+        targetMenuId: menu_id
+      });
+      throw createError.internalError('移动子菜单失败，已回滚操作');
+    }
   } else {
+    // 仅更新名称和排序
     const { rowCount } = await sql`
       UPDATE sub_menus
       SET name = ${name}, sort_order = ${sort_order || 0}
       WHERE id = ${subMenuId}
     `;
+    
+    logger.info(`子菜单更新成功: ${subMenuId}`, {
+      user: req.user.username
+    });
+    
     res.json({ changed: rowCount });
   }
 }));

@@ -287,6 +287,28 @@ const brandSchema = {
   icp_number: ['optional', 'string', rules.max(100), 'noXSS']
 };
 
+// 批量操作验证schema
+const batchOperationSchema = {
+  ids: ['required', (value, fieldName) => {
+    if (!Array.isArray(value)) {
+      return `${fieldName}必须是数组`;
+    }
+    if (value.length === 0) {
+      return `${fieldName}不能为空`;
+    }
+    if (value.length > 50) {
+      return `${fieldName}一次最多只能操作50项`;
+    }
+    // 验证每个ID都是正整数
+    for (const id of value) {
+      if (!Number.isInteger(id) || id <= 0) {
+        return `${fieldName}包含无效的ID`;
+      }
+    }
+    return null;
+  }]
+};
+
 module.exports = {
   validate,
   rules,
@@ -298,5 +320,6 @@ module.exports = {
   changePasswordSchema,
   adSchema,
   friendSchema,
-  brandSchema
+  brandSchema,
+  batchOperationSchema
 };

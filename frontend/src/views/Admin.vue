@@ -201,17 +201,51 @@ function closeSider() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg,#667eea,#764ba2);
-  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: moveBackground 20s linear infinite;
+}
+
+@keyframes moveBackground {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
 }
 
 .login-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 0 40px 40px 40px;
   width: 400px;
   max-width: 90%;
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-title {
@@ -310,90 +344,164 @@ function closeSider() {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: #f5f6fa;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf2 100%);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
+
 .admin-sider {
-  width: 180px;
-  background: #fff;
+  width: 220px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%);
   color: #222;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   padding-top: 32px;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
   z-index: 100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-sider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
 }
 .logo {
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 32px;
-  letter-spacing: 2px;
-  color: #1349a6;
+  margin-bottom: 40px;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   cursor: pointer;
   user-select: none;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
 }
+
+.logo::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.logo.clickable:hover::after {
+  width: 60%;
+}
+
 .logo.clickable:hover {
-  color: #176efa;
+  transform: scale(1.05);
+  filter: brightness(1.2);
 }
 .menu-list {
   list-style: none;
-  padding: 0;
+  padding: 0 12px;
   margin: 0;
   flex: 1;
 }
+
 .menu-list li {
-  padding: 16px 32px;
+  padding: 14px 20px;
+  margin: 6px 0;
   cursor: pointer;
-  font-size: 16px;
-  border-left: 4px solid transparent;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-  color: #222;
+  font-size: 15px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #4a5568;
+  position: relative;
+  overflow: hidden;
 }
+
+.menu-list li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.menu-list li:hover {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+  transform: translateX(5px);
+}
+
 .menu-list li.active {
-  background: #eaf1ff;
-  border-left: 4px solid #2566d8;
-  color: #2566d8;
-  font-weight: bold;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  color: #667eea;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.2);
+}
+
+.menu-list li.active::before {
+  transform: scaleY(1);
 }
 .admin-main {
   flex: 1;
-  background: #f5f6fa;
-  padding: 64px 0 0 180px;
+  background: transparent;
+  padding: 70px 0 0 220px;
   min-width: 0;
   overflow-x: auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
+
 .admin-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 64px;
+  height: 70px;
   padding: 0 48px 0 0;
-  background: #f5f6fa;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   position: fixed;
   top: 0;
-  left: 180px;
+  left: 220px;
   right: 0;
   z-index: 101;
-  border-bottom: 1px solid #e3e6ef;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 .header-title {
   flex: 1;
   text-align: center;
-  margin-left: 180px;
-  font-size: 1.5rem;
-  font-weight: 500;
+  margin-left: 220px;
+  font-size: 1.6rem;
+  font-weight: 600;
   letter-spacing: 2px;
-  color: #222;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .header-actions {
   display: flex;
@@ -499,50 +607,92 @@ function closeSider() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 48px;
+  margin-top: 60px;
+  animation: fadeIn 0.6s ease-out;
 }
+
 .welcome-title {
   text-align: center;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 32px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 48px;
+  animation: slideDown 0.6s ease-out;
 }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .welcome-cards {
   display: flex;
-  gap: 32px;
+  gap: 40px;
 }
+
 .welcome-card {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  padding: 32px 40px;
-  min-width: 260px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 36px 44px;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  border: 1.5px solid #e3e6ef;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: scaleIn 0.5s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.welcome-card:nth-child(1) { animation-delay: 0.1s; }
+.welcome-card:nth-child(2) { animation-delay: 0.2s; }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.welcome-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 .welcome-icon {
-  width: 48px;
-  height: 48px;
-  background: #f5f6fa;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
 }
+
+.welcome-card:hover .welcome-icon {
+  transform: rotate(5deg) scale(1.1);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
 .welcome-label {
-  font-size: 1.1rem;
-  color: #222;
-  margin-bottom: 8px;
+  font-size: 1.05rem;
+  color: #4a5568;
+  margin-bottom: 12px;
+  font-weight: 500;
 }
+
 .welcome-value {
-  font-size: 2rem;
-  color: #1abc9c;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-size: 1.8rem;
+  background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 @media (max-width: 900px) {
   .welcome-cards {

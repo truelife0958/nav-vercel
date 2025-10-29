@@ -39,14 +39,35 @@
 </template>
 
 <script setup>
-defineProps([
-  'subMenus',
-  'selectedSubMenus',
-  'isAllSelected',
-  'menus',
-  'batchMoveMenuId'
-]);
+// Props类型验证和默认值
+defineProps({
+  subMenus: {
+    type: Array,
+    required: true,
+    default: () => []
+  },
+  selectedSubMenus: {
+    type: Array,
+    required: true,
+    default: () => []
+  },
+  isAllSelected: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  menus: {
+    type: Array,
+    required: true,
+    default: () => []
+  },
+  batchMoveMenuId: {
+    type: [String, Number],
+    default: ''
+  }
+});
 
+// 事件定义
 defineEmits([
   'toggle-select-all',
   'update:batchMoveMenuId',
@@ -58,16 +79,34 @@ defineEmits([
 <style scoped>
 .batch-toolbar {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-radius: 12px;
-  padding: 16px 20px;
+  border-radius: 16px;
+  padding: 18px 24px;
   margin: 16px 32px;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-  border: 2px solid #bfdbfe;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+  border: 2px solid rgba(191, 219, 254, 0.8);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
+  animation: slideDown 0.4s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.batch-toolbar:hover {
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.2);
+  border-color: rgba(191, 219, 254, 1);
 }
 
 .batch-selection {
@@ -115,44 +154,100 @@ defineEmits([
 .btn-batch {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-batch::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-batch:hover:not(:disabled)::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-batch:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.btn-batch:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-batch:disabled {
-  background: #cbd5e1;
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
   cursor: not-allowed;
   opacity: 0.6;
+  box-shadow: none;
 }
 
 .btn-danger {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-danger::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-danger:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-danger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
 }
 
 .input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(203, 213, 225, 0.8);
   font-size: 0.9rem;
   background: white;
   color: #1e293b;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 180px;
+}
+
+.input:hover {
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .batch-select {
@@ -177,23 +272,33 @@ defineEmits([
 }
 
 .checkmark {
-  height: 20px;
-  width: 20px;
+  height: 22px;
+  width: 22px;
   background-color: white;
   border: 2px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 7px;
   margin-right: 10px;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .checkbox-container:hover .checkmark {
   border-color: #3b82f6;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(59, 130, 246, 0.2);
 }
 
 .batch-checkbox:checked ~ .checkmark {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border-color: #3b82f6;
+  animation: checkPop 0.3s ease-out;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }
 
 .checkmark:after {
