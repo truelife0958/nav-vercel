@@ -368,20 +368,30 @@ app.put('/api/menus/submenus/:id', authMiddleware, validate(subMenuSchema), asyn
   await ensureDbInitialized();
   
   const { name, sort_order, menu_id } = req.body;
+  const subMenuId = req.params.id;
   
-  // 如果提供了menu_id，则同时更新parent_id
+  // 如果提供了menu_id，则同时更新parent_id，并且移动该子菜单下的所有卡片
   if (menu_id !== undefined) {
+    // 更新子菜单的parent_id
     const { rowCount } = await sql`
       UPDATE sub_menus
       SET name = ${name}, sort_order = ${sort_order || 0}, parent_id = ${menu_id}
-      WHERE id = ${req.params.id}
+      WHERE id = ${subMenuId}
     `;
+    
+    // 同步更新该子菜单下所有卡片的menu_id
+    await sql`
+      UPDATE cards
+      SET menu_id = ${menu_id}
+      WHERE sub_menu_id = ${subMenuId}
+    `;
+    
     res.json({ changed: rowCount });
   } else {
     const { rowCount } = await sql`
       UPDATE sub_menus
       SET name = ${name}, sort_order = ${sort_order || 0}
-      WHERE id = ${req.params.id}
+      WHERE id = ${subMenuId}
     `;
     res.json({ changed: rowCount });
   }
